@@ -22,30 +22,25 @@ const DetalheDispositivo = () => {
       setError("");
 
       try {
-        // 1. Buscar dados do dispositivo
         const data = await apiRequest(`/dispositivo/${id}`, "GET", null, token);
         setDispositivo(data);
 
-        // 2. Nome do modelo
         if (data.modeloDId) {
           const modeloData = await apiRequest(`/modelo/${data.modeloDId}`, "GET", null, token);
           setNomeModelo(modeloData.nomeModelo || "Desconhecido");
         }
 
-        // 3. Nome do espaço
         if (data.espacoId) {
           const espacoData = await apiRequest(`/espaco/${data.espacoId}`, "GET", null, token);
           setNomeEspaco(espacoData.nomeEspaco || "Desconhecido");
         }
 
-        // 4. Último consumo
         const consumos = await apiRequest(`/consumo/dispositivo/${id}`, "GET", null, token);
         if (consumos && consumos.length > 0) {
           const ultimo = consumos[consumos.length - 1];
           setUltimoConsumo(ultimo);
           setConsumoAtual(`${ultimo.valorConsumido.toFixed(2)} kWh`);
 
-          // 5. Carregar preços do último consumo
           const registoId = ultimo.RegistoConsumoId || ultimo.registoConsumoId;
           if (registoId) {
             const precosData = await apiRequest(`/precoenergia/consumo/${registoId}`, "GET", null, token);
@@ -54,7 +49,6 @@ const DetalheDispositivo = () => {
         } else {
           setConsumoAtual("0 kWh");
         }
-
       } catch (err) {
         console.error("Erro ao buscar dispositivo:", err);
         setError("Não foi possível carregar os detalhes do dispositivo.");
@@ -66,24 +60,35 @@ const DetalheDispositivo = () => {
     fetchDispositivo();
   }, [id, token]);
 
+  // FUNÇÃO TOGGLE INTEGRADA
+  const handleToggleStatus = async () => {
+    try {
+      const result = await apiRequest(`/dispositivo/${id}/toggle`, "POST", null, token);
+      
+      // Atualiza apenas o status no estado para refletir no botão e no texto
+      setDispositivo((prev) => ({
+        ...prev,
+        status: result.status || result.Status
+      }));
+
+    } catch (err) {
+      console.error("Erro ao alterar status:", err);
+      alert("Falha ao alterar o estado do dispositivo.");
+    }
+  };
+
   const handleObterGastos = async () => {
     if (!ultimoConsumo) return;
-
     try {
       const registoId = ultimoConsumo.RegistoConsumoId || ultimoConsumo.registoConsumoId;
       if (!registoId) {
         alert("ID de registo do consumo não encontrado.");
         return;
       }
-
-      // Registar gastos
       await apiRequest(`/precoenergia/registar?consumoRegistoId=${registoId}`, "POST", null, token);
       alert("Gastos associados ao consumo registados com sucesso!");
-
-      // Atualizar tabela de preços
       const precosData = await apiRequest(`/precoenergia/consumo/${registoId}`, "GET", null, token);
       setPrecos(precosData || []);
-
     } catch (err) {
       console.error("Erro ao registar gastos:", err);
       alert("Falha ao registar gastos associados ao consumo.");
@@ -94,9 +99,11 @@ const DetalheDispositivo = () => {
   if (error) return <p className="text-red-500">{error}</p>;
   if (!dispositivo) return <p>Dispositivo não encontrado.</p>;
 
+  // Lógica para controle do botão
+  const isLigado = dispositivo.status === "Ligado";
+
   return (
     <div className="flex w-full flex-col gap-5 mt-5">
-      {/* Info do dispositivo */}
       <div className="w-full mt-3 flex h-fit flex-col gap-5 lg:grid lg:grid-cols-12">
         <div className="col-span-12 lg:col-span-4 lg:!mb-0">
           <Card extra={"items-center w-full h-full p-[16px] bg-cover"}>
@@ -111,41 +118,42 @@ const DetalheDispositivo = () => {
                 <p className="text-sm font-normal text-gray-600">Última Leitura</p>
               </div>
               <div className="flex flex-col items-center justify-center">
-                <p className={`text-2xl font-bold ${dispositivo.status === "Ligado" ? "text-green-500" : "text-red-500"}`}>
+                <p className={`text-2xl font-bold ${isLigado ? "text-green-500" : "text-red-500"}`}>
                   {dispositivo.status || "Desconhecido"}
                 </p>
                 <p className="text-sm font-normal text-gray-600">Estado</p>
               </div>
             </div>
 
-            <button className="mt-4 w-full rounded-xl bg-red-500 py-3 text-white font-bold transition duration-200 hover:bg-red-600">
-              Desligar Dispositivo
+            {/* BOTÃO ATUALIZADO: DINÂMICO EM COR E TEXTO */}
+            <button 
+              onClick={handleToggleStatus}
+              className={`mt-4 w-full rounded-xl py-3 text-white font-bold transition duration-200 ${
+                isLigado ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
+              }`}
+            >
+              {isLigado ? "Desligar Dispositivo" : "Ligar Dispositivo"}
             </button>
           </Card>
         </div>
 
-        {/* Configurações */}
         <div className="col-span-12 lg:col-span-8">
           <Card extra={"w-full h-full p-4 flex flex-col"}>
             <h4 className="mb-[30px] px-2 text-xl font-bold text-navy-700 dark:text-white">Configurações do Dispositivo</h4>
-            
             <div className="grid grid-cols-1 gap-4 px-2 md:grid-cols-2">
               <div className="flex flex-col mb-4">
                 <label className="text-sm text-gray-600 dark:text-white ml-1 font-bold">Nome</label>
                 <input type="text" defaultValue={dispositivo.nomeDispositivo} className="mt-2 flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white" />
               </div>
-
               <div className="flex flex-col mb-4">
                 <label className="text-sm text-gray-600 dark:text-white ml-1 font-bold">Modelo</label>
                 <input type="text" value={nomeModelo || "Desconhecido"} readOnly className="mt-2 flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white" />
               </div>
-
               <div className="flex flex-col mb-4 md:col-span-2">
                 <label className="text-sm text-gray-600 dark:text-white ml-1 font-bold">Espaço / Divisão</label>
                 <input type="text" value={nomeEspaco || "Desconhecido"} readOnly className="mt-2 flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white" />
               </div>
             </div>
-
             <button className="mt-auto w-full rounded-xl bg-brand-500 py-3 text-white font-bold transition duration-200 hover:bg-brand-600">
               Guardar Alterações
             </button>
@@ -153,7 +161,6 @@ const DetalheDispositivo = () => {
         </div>
       </div>
 
-      {/* Monitorização */}
       <div className="w-full">
         <Card extra="flex-col bg-white w-full px-6 py-10 items-center justify-center">
           <div className="text-center">
@@ -168,7 +175,6 @@ const DetalheDispositivo = () => {
         </Card>
       </div>
 
-      {/* Tabela de Preços */}
       {precos.length > 0 && (
         <Card extra="w-full p-4 mt-5 overflow-x-auto">
           <h4 className="text-xl font-bold text-navy-700 dark:text-white mb-4">Histórico de Preços</h4>

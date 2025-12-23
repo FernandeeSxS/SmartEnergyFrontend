@@ -9,30 +9,44 @@ const Marketplace = () => {
   const [showModal, setShowModal] = useState(false);
   const [espacos, setEspacos] = useState([]);
   const navigate = useNavigate();
-  const token = localStorage.getItem("userToken"); // Token JWT
+  const token = localStorage.getItem("userToken");
 
-  // Buscar espaços do utilizador logado
-  const fetchEspacos = async () => {
+  const fetchEspacosComConsumo = async () => {
     try {
+      // 1. Primeiro, buscar a lista de espaços
       const data = await apiRequest("/espaco/utilizador", "GET", null, token);
-      setEspacos(data);
+      
+      if (data && data.length > 0) {
+        // 2. Para cada espaço, buscar o seu consumo total usando o novo endpoint
+        const espacosComDados = await Promise.all(
+          data.map(async (espaco) => {
+            try {
+              // Ajusta a rota para coincidir com o teu Controller (ex: /consumo/espaco/{id}/total)
+              const consumoTotal = await apiRequest(`/consumo/espaco/${espaco.espacoId}/total`, "GET", null, token);
+              return { ...espaco, consumoTotal };
+            } catch (err) {
+              console.error(`Erro ao buscar consumo do espaço ${espaco.espacoId}:`, err);
+              return { ...espaco, consumoTotal: 0 };
+            }
+          })
+        );
+        setEspacos(espacosComDados);
+      }
     } catch (err) {
       console.error("Erro ao buscar espaços:", err);
     }
   };
 
   useEffect(() => {
-    fetchEspacos();
+    fetchEspacosComConsumo();
   }, []);
 
-  // Navegação para a página de dispositivos
   const handleVerDispositivos = (espacoId, nomeEspaco) => {
     navigate(`/admin/space/${espacoId}`, { state: { nomeEspaco } });
   };
 
   return (
     <div className="relative mt-3 flex flex-col h-full w-full gap-5">
-      {/* Botão flutuante */}
       <button
         className="fixed bottom-10 right-10 z-50 flex items-center justify-center gap-2 rounded-full bg-brand-500 p-4 text-white shadow-xl transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 md:px-6 md:py-3"
         onClick={() => setShowModal(true)}
@@ -45,7 +59,7 @@ const Marketplace = () => {
         isOpen={showModal}
         onClose={() => {
           setShowModal(false);
-          fetchEspacos();
+          fetchEspacosComConsumo();
         }}
       />
 
@@ -67,7 +81,8 @@ const Marketplace = () => {
               key={espaco.espacoId}
               title={espaco.nomeEspaco}
               author={`${espaco.tamanhoEspaco} m²`}
-              price=""
+              // Exibe o valor vindo do novo endpoint
+              price={`${espaco.consumoTotal || 0} kWh`}
               onViewDevices={() =>
                 handleVerDispositivos(espaco.espacoId, espaco.nomeEspaco)
               }

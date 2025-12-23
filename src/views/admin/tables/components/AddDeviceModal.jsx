@@ -1,14 +1,75 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Card from "components/card";
 import { MdClose } from "react-icons/md";
+import { apiRequest } from "services/api";
 
 const AddDeviceModal = ({ isOpen, onClose }) => {
+  const token = localStorage.getItem("userToken");
+  
+  // Estados para capturar os valores do formulário
+  const [nomeDispositivo, setNomeDispositivo] = useState("");
+  const [nomeMarca, setNomeMarca] = useState("");
+  const [nomeModelo, setNomeModelo] = useState("");
+  const [espacoId, setEspacoId] = useState("");
+  
+  const [listaEspacos, setListaEspacos] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Carregar espaços do utilizador para a dropdown
+  useEffect(() => {
+    if (isOpen) {
+      const fetchEspacos = async () => {
+        try {
+          const data = await apiRequest("/espaco/utilizador", "GET", null, token);
+          setListaEspacos(data || []);
+        } catch (err) {
+          console.error("Erro ao carregar espaços:", err);
+        }
+      };
+      fetchEspacos();
+    }
+  }, [isOpen, token]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    // O objeto 'input' deve coincidir com o CreateDispositivoRequest do C#
+    const input = {
+      nomeDispositivo: nomeDispositivo,
+      nomeMarca: nomeMarca,
+      nomeModelo: nomeModelo,
+      espacoId: parseInt(espacoId)
+    };
+
+    try {
+      // Chama o endpoint POST que criaste
+      await apiRequest("/dispositivo", "POST", input, token);
+      
+      alert("Dispositivo registado com sucesso!");
+      
+      // Limpar formulário
+      setNomeDispositivo("");
+      setNomeMarca("");
+      setNomeModelo("");
+      setEspacoId("");
+      
+      onClose(); // Fecha o modal e dispara o refresh na lista pai
+    } catch (err) {
+      console.error("Erro ao criar dispositivo:", err);
+      alert("Erro ao registar dispositivo. Verifique se todos os campos estão corretos.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <Card extra={"w-full max-w-[600px] p-6 bg-white dark:bg-navy-800 shadow-2xl relative"}>
-        {/* Botão para fechar o Modal */}
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-600 hover:text-navy-700 dark:text-white"
@@ -20,45 +81,72 @@ const AddDeviceModal = ({ isOpen, onClose }) => {
           Registar Novo Dispositivo
         </h4>
         
-        <form className="grid grid-cols-1 gap-5" onSubmit={(e) => e.preventDefault()}>
-          {/* Campo: Nome do Dispositivo */}
+        <form className="grid grid-cols-1 gap-5" onSubmit={handleSubmit}>
+          {/* Nome do Dispositivo */}
           <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-2 ml-1 dark:text-white">Nome do Dispositivo</label>
+            <label className="text-sm text-gray-600 mb-2 ml-1 dark:text-white font-bold">Nome do Dispositivo</label>
             <input
+              required
               type="text"
-              placeholder="Ex: Frigorífico Inteligente"
+              value={nomeDispositivo}
+              onChange={(e) => setNomeDispositivo(e.target.value)}
+              placeholder="Ex: Frigorífico Smart"
               className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
             />
           </div>
 
-          {/* NOVO Campo: Modelo do Dispositivo */}
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-2 ml-1 dark:text-white">Modelo / Marca</label>
-            <input
-              type="text"
-              placeholder="Ex: Samsung RT38 / LG Dual Inverter"
-              className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
-            />
+          {/* Marca e Modelo Lado a Lado */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-2 ml-1 dark:text-white font-bold">Marca</label>
+              <input
+                required
+                type="text"
+                value={nomeMarca}
+                onChange={(e) => setNomeMarca(e.target.value)}
+                placeholder="Ex: LG"
+                className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-2 ml-1 dark:text-white font-bold">Modelo</label>
+              <input
+                required
+                type="text"
+                value={nomeModelo}
+                onChange={(e) => setNomeModelo(e.target.value)}
+                placeholder="Ex: V-1200"
+                className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+              />
+            </div>
           </div>
 
-          {/* Campo: Espaço (Divisão da Casa) */}
+          {/* Espaço Associado (Dropdown) */}
           <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-2 ml-1 dark:text-white">Espaço Associado</label>
-            <select className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white">
+            <label className="text-sm text-gray-600 mb-2 ml-1 dark:text-white font-bold">Espaço Associado</label>
+            <select 
+              required
+              value={espacoId}
+              onChange={(e) => setEspacoId(e.target.value)}
+              className="flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+            >
               <option value="">Selecionar divisão...</option>
-              <option value="1">Cozinha</option>
-              <option value="2">Sala de Estar</option>
-              <option value="3">Escritório</option>
-              <option value="4">Quarto Principal</option>
+              {listaEspacos.map((espaco) => (
+                <option key={espaco.espacoId} value={espaco.espacoId}>
+                  {espaco.nomeEspaco}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* Botão de Submissão */}
           <button 
             type="submit"
-            className="linear mt-4 w-full rounded-xl bg-brand-500 py-3 text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:hover:bg-brand-300"
+            disabled={isSubmitting}
+            className={`linear mt-4 w-full rounded-xl py-3 text-base font-medium text-white transition duration-200 ${
+              isSubmitting ? "bg-gray-400 cursor-not-allowed" : "bg-brand-500 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400"
+            }`}
           >
-            Confirmar e Registar
+            {isSubmitting ? "A registar..." : "Confirmar e Registar"}
           </button>
         </form>
       </Card>

@@ -1,31 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DeviceCard from "components/card/DeviceCard";
 import NFt3 from "assets/img/nfts/Nft3.png"; 
 import NFt2 from "assets/img/nfts/Nft2.png";
-import NFt4 from "assets/img/nfts/Nft4.png";
 import { IoMdAdd } from "react-icons/io";
-
-// Importa o teu componente separado
 import AddDeviceModal from "./components/AddDeviceModal";
-
-const dispositivosData = [
-  { nome: "Frigorífico", consumo: "1.2", imagem: NFt3, ligado: true },
-  { nome: "Ar Condicionado", consumo: "2.5", imagem: NFt2, ligado: true },
-  { nome: "Máquina de Lavar", consumo: "0.0", imagem: NFt4, ligado: false },
-  { nome: "Computador Desktop", consumo: "0.5", imagem: NFt3, ligado: true },
-  { nome: "Micro-ondas", consumo: "0.0", imagem: NFt2, ligado: false }
-];
+import { apiRequest } from "services/api";
 
 const Tables = () => {
   const [showModal, setShowModal] = useState(false);
+  const [dispositivos, setDispositivos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const token = localStorage.getItem("userToken");
 
-  const ativos = dispositivosData.filter(d => d.ligado);
-  const desligados = dispositivosData.filter(d => d.ligado === false);
+  const fetchDispositivos = async () => {
+    try {
+      setLoading(true);
+      // 1. Vai buscar a lista base de dispositivos
+      const listaBase = await apiRequest("/Dispositivo/utilizador", "GET", null, token);
+      
+      if (listaBase && listaBase.length > 0) {
+        // 2. Para cada dispositivo, procura o histórico de consumo em paralelo
+        const dispositivosComConsumo = await Promise.all(
+          listaBase.map(async (d) => {
+            try {
+              const consumos = await apiRequest(`/consumo/dispositivo/${d.dispositivoId}`, "GET", null, token);
+              // Obtém o valor do último registo se existir
+              const ultimoValor = consumos && consumos.length > 0 
+                ? consumos[consumos.length - 1].valorConsumido.toFixed(2) 
+                : "0.00";
+              
+              return { ...d, ultimoConsumo: ultimoValor };
+            } catch (err) {
+              return { ...d, ultimoConsumo: "0.00" };
+            }
+          })
+        );
+        setDispositivos(dispositivosComConsumo);
+      } else {
+        setDispositivos([]);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar dispositivos:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDispositivos();
+  }, []);
+
+  const handleVerDetalhes = (id) => {
+    navigate(`/admin/dispositivo/${id}`); 
+  };
+
+  // Filtros de estado
+  const ativos = dispositivos.filter(d => d.status === true || d.status === "Ligado" || d.isAtivo === true);
+  const desligados = dispositivos.filter(d => !(d.status === true || d.status === "Ligado" || d.isAtivo === true));
+
+  if (loading) return <div className="p-5 text-white text-center">A carregar dispositivos...</div>;
 
   return (
     <div className="relative mt-5 flex flex-col gap-10 h-full w-full">
       
-      {/* Botão Flutuante */}
       <button
         className="fixed bottom-10 right-10 z-50 flex items-center justify-center gap-2 rounded-full bg-brand-500 p-4 text-white shadow-xl transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 md:px-6 md:py-3"
         onClick={() => setShowModal(true)}
@@ -34,34 +73,47 @@ const Tables = () => {
         <span className="hidden md:block font-bold">Adicionar Dispositivo</span>
       </button>
 
-      {/* CHAMADA DO COMPONENTE MODAL */}
       <AddDeviceModal 
         isOpen={showModal} 
-        onClose={() => setShowModal(false)} 
+        onClose={() => {
+          setShowModal(false);
+          fetchDispositivos(); 
+        }} 
       />
 
-      {/* Secções de listagem (Ativos) */}
       <section>
         <div className="mb-4 px-4">
           <h4 className="text-2xl font-bold text-navy-700 dark:text-white">Dispositivos Ativos</h4>
           <p className="text-sm text-gray-600">Equipamentos a consumir energia em tempo real.</p>
         </div>
         <div className="z-20 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {ativos.map((dispositivo, index) => (
-            <DeviceCard key={index} title={dispositivo.nome} consumption={dispositivo.consumo} image={dispositivo.imagem} />
+          {ativos.map((d) => (
+            <DeviceCard 
+              key={d.dispositivoId} 
+              title={d.nomeDispositivo || d.nome} 
+              consumption={d.ultimoConsumo} // AQUI: Usa o valor que fomos buscar
+              image={NFt3}
+              onViewDetails={() => handleVerDetalhes(d.dispositivoId)} 
+            />
           ))}
         </div>
       </section>
 
-      {/* Secções de listagem (Desligados) */}
-      <section>
+      <section className="pb-10">
         <div className="mb-4 px-4">
           <h4 className="text-2xl font-bold text-navy-700 dark:text-white">Dispositivos Desligados</h4>
           <p className="text-sm text-gray-600">Equipamentos em standby ou desligados.</p>
         </div>
         <div className="z-20 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {desligados.map((dispositivo, index) => (
-            <DeviceCard key={index} title={dispositivo.nome} consumption={dispositivo.consumo} image={dispositivo.imagem} extra="opacity-60" />
+          {desligados.map((d) => (
+            <DeviceCard 
+              key={d.dispositivoId} 
+              title={d.nomeDispositivo || d.nome} 
+              consumption={d.ultimoConsumo} // AQUI: Também mostra o último consumo antes de desligar
+              image={NFt2} 
+              extra="opacity-60" 
+              onViewDetails={() => handleVerDetalhes(d.dispositivoId)}
+            />
           ))}
         </div>
       </section>
