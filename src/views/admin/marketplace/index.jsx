@@ -25,9 +25,9 @@ const Marketplace = () => {
     fetchEspacos();
   }, []);
 
-  const handleVerDispositivos = (nomeEspaco) => {
-    const idUrl = nomeEspaco.toLowerCase().replace(/\s+/g, "-");
-    navigate(`/admin/espaco/${idUrl}`);
+  // Navegação para a página de dispositivos
+  const handleVerDispositivos = (espacoId, nomeEspaco) => {
+    navigate(`/admin/space/${espacoId}`, { state: { nomeEspaco } });
   };
 
   return (
@@ -41,7 +41,13 @@ const Marketplace = () => {
         <span className="hidden md:block font-bold">Adicionar Espaço</span>
       </button>
 
-      <AddEspacoModal isOpen={showModal} onClose={() => { setShowModal(false); fetchEspacos(); }} />
+      <AddEspacoModal
+        isOpen={showModal}
+        onClose={() => {
+          setShowModal(false);
+          fetchEspacos();
+        }}
+      />
 
       <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-2">
         <div className="mb-4 mt-5 px-4">
@@ -61,8 +67,10 @@ const Marketplace = () => {
               key={espaco.espacoId}
               title={espaco.nomeEspaco}
               author={`${espaco.tamanhoEspaco} m²`}
-              price="" // Ainda não temos consumo
-              onViewDevices={() => handleVerDispositivos(espaco.nomeEspaco)}
+              price=""
+              onViewDevices={() =>
+                handleVerDispositivos(espaco.espacoId, espaco.nomeEspaco)
+              }
             />
           ))}
         </div>

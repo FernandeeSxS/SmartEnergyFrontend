@@ -1,38 +1,79 @@
-import React from "react";
-import DeviceCard from "components/card/DeviceCard";
-import NFt3 from "assets/img/nfts/Nft3.png"; 
-import NFt2 from "assets/img/nfts/Nft2.png"; // Importei outra imagem para variar
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { apiRequest } from "services/api";
 
-const DetalheEspaco = () => {
-  const nomeEspaco = "Cozinha"; 
+const Space = () => {
+  const { id } = useParams(); // espacoId
+  const navigate = useNavigate();
+  const { state } = useLocation();
+  const NomeEspaco = state?.nomeEspaco;
 
-  const dispositivosNaCozinha = [
-    { nome: "Frigorífico", consumo: "1.2", imagem: NFt3 },
-    { nome: "Micro-ondas", consumo: "0.8", imagem: NFt2 }
-  ];
+  const [dispositivos, setDispositivos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const token = localStorage.getItem("userToken");
+
+  useEffect(() => {
+    const fetchDispositivos = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await apiRequest(`/dispositivo/espaco/${id}`, "GET", null, token);
+        setDispositivos(data || []);
+      } catch (err) {
+        console.error("Erro ao buscar dispositivos:", err);
+        setError("Não foi possível carregar os dispositivos.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDispositivos();
+  }, [id, token]);
+
+  if (loading) return <p>Carregando dispositivos...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
-    <div className="mt-5 h-full w-full">
-      <div className="mb-6 px-4">
-        <h4 className="text-3xl font-bold text-navy-700 dark:text-white">
-          Dispositivos: {nomeEspaco}
-        </h4>
-        <p className="text-sm text-gray-600">A visualizar equipamentos desta divisão.</p>
-      </div>
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-4">
+        Dispositivos do Espaço {NomeEspaco}
+      </h2>
 
-      {/* Grid de Dispositivos */}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {dispositivosNaCozinha.map((device, index) => (
-          <DeviceCard
-            key={index}
-            title={device.nome}
-            consumption={device.consumo}
-            image={device.imagem} // CORREÇÃO: Usar 'imagem' para corresponder ao objeto acima
-          />
-        ))}
-      </div>
+      {dispositivos.length === 0 ? (
+        <p>Nenhum dispositivo encontrado.</p>
+      ) : (
+        <ul className="space-y-2">
+          {dispositivos.map((d) => (
+            <li
+              key={d.dispositivoId}
+              className="p-3 border rounded-md flex justify-between items-center bg-white dark:bg-navy-800"
+            >
+              <div>
+                <p className="font-medium">{d.nomeDispositivo}</p>
+                <p
+                  className={`text-sm ${
+                    d.status === "Ligado" ? "text-green-500" : "text-red-500"
+                  }`}
+                >
+                  Status: {d.status || "Desconhecido"}
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  navigate(`/admin/dispositivo/${d.dispositivoId}`)
+                }
+                className="ml-4 rounded bg-brand-500 px-4 py-2 text-white hover:bg-brand-600"
+              >
+                Ver Dispositivo
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
 
-export default DetalheEspaco;
+export default Space;
