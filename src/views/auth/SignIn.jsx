@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import InputField from "components/fields/InputField";
-import axios from "axios";
 import { apiRequest } from "services/api";
 
 export default function SignIn() {
@@ -12,26 +11,36 @@ export default function SignIn() {
     e.preventDefault();
     setError("");
 
+    console.log("EMAIL:", email);
+    console.log("PASSWORD:", password);
+
     if (!email || !password) {
       setError("Preencha email e password");
       return;
     }
 
     try {
-      const endpoint = `/Auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
-      const data = await apiRequest(endpoint, "POST");
+      const data = await apiRequest(
+        "/Auth/login",
+        "POST",
+        {
+          email,
+          password,
+        }
+      );
 
       if (data.token) {
         localStorage.setItem("userToken", data.token);
-        window.location.href = "/admin/default"; 
+        window.location.href = "/admin/default";
+      } else {
+        setError("Resposta inválida do servidor");
       }
     } catch (err) {
-      setError("Falha no login: verifique as credenciais ou a ligação ao servidor.");
-      
+      setError(err.message || "Falha no login");
+    }
   };
-}
 
-return (
+  return (
     <div className="mt-16 mb-16 flex h-full w-full items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-start">
       <div className="mt-[10vh] w-full max-w-full flex-col items-center md:pl-4 lg:pl-0 xl:max-w-[420px]">
         <h4 className="mb-2.5 text-4xl font-bold text-navy-700 dark:text-white">
@@ -45,41 +54,37 @@ return (
         {error && <p className="mb-4 text-red-500 text-sm">{error}</p>}
 
         <form onSubmit={handleLogin}>
-          <InputField
-            variant="auth"
-            extra="mb-3"
-            label="Email*"
-            placeholder="mail@exemplo.com"
-            id="email"
-            type="text"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)} // Atualiza o estado
-          />
+  <input
+    type="email"
+    placeholder="Email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    className="mb-3 w-full border p-2"
+  />
 
-          <InputField
-            variant="auth"
-            extra="mb-3"
-            label="Password*"
-            placeholder="Min. 8 characters"
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)} // Atualiza o estado
-          />
+  <input
+    type="password"
+    placeholder="Password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    className="mb-3 w-full border p-2"
+  />
 
-          <button 
-            type="submit"
-            className="linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200"
-          >
-            Iniciar Sessão
-          </button>
-        </form>
+  <button type="submit">
+    Iniciar Sessão
+  </button>
+</form>
+
+         
 
         <div className="mt-4">
           <span className="text-sm font-medium text-navy-700 dark:text-gray-600">
             Ainda não tem conta?
           </span>
-          <a href="/register" className="ml-1 text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white">
+          <a
+            href="/register"
+            className="ml-1 text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white"
+          >
             Crie aqui a sua conta
           </a>
         </div>
