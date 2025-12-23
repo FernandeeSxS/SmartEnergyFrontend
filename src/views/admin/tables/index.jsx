@@ -17,16 +17,13 @@ const Tables = () => {
   const fetchDispositivos = async () => {
     try {
       setLoading(true);
-      // 1. Vai buscar a lista base de dispositivos
       const listaBase = await apiRequest("/Dispositivo/utilizador", "GET", null, token);
       
       if (listaBase && listaBase.length > 0) {
-        // 2. Para cada dispositivo, procura o histórico de consumo em paralelo
         const dispositivosComConsumo = await Promise.all(
           listaBase.map(async (d) => {
             try {
               const consumos = await apiRequest(`/consumo/dispositivo/${d.dispositivoId}`, "GET", null, token);
-              // Obtém o valor do último registo se existir
               const ultimoValor = consumos && consumos.length > 0 
                 ? consumos[consumos.length - 1].valorConsumido.toFixed(2) 
                 : "0.00";
@@ -56,7 +53,6 @@ const Tables = () => {
     navigate(`/admin/dispositivo/${id}`); 
   };
 
-  // Filtros de estado
   const ativos = dispositivos.filter(d => d.status === true || d.status === "Ligado" || d.isAtivo === true);
   const desligados = dispositivos.filter(d => !(d.status === true || d.status === "Ligado" || d.isAtivo === true));
 
@@ -81,6 +77,7 @@ const Tables = () => {
         }} 
       />
 
+      {/* SECÇÃO DISPOSITIVOS ATIVOS */}
       <section>
         <div className="mb-4 px-4">
           <h4 className="text-2xl font-bold text-navy-700 dark:text-white">Dispositivos Ativos</h4>
@@ -90,15 +87,18 @@ const Tables = () => {
           {ativos.map((d) => (
             <DeviceCard 
               key={d.dispositivoId} 
+              id={d.dispositivoId} // CORREÇÃO: Passa o ID para o DELETE funcionar
               title={d.nomeDispositivo || d.nome} 
-              consumption={d.ultimoConsumo} // AQUI: Usa o valor que fomos buscar
+              consumption={d.ultimoConsumo} 
               image={NFt3}
               onViewDetails={() => handleVerDetalhes(d.dispositivoId)} 
+              onRefresh={fetchDispositivos} // CORREÇÃO: Atualiza a lista após eliminar
             />
           ))}
         </div>
       </section>
 
+      {/* SECÇÃO DISPOSITIVOS DESLIGADOS */}
       <section className="pb-10">
         <div className="mb-4 px-4">
           <h4 className="text-2xl font-bold text-navy-700 dark:text-white">Dispositivos Desligados</h4>
@@ -108,11 +108,13 @@ const Tables = () => {
           {desligados.map((d) => (
             <DeviceCard 
               key={d.dispositivoId} 
+              id={d.dispositivoId} // CORREÇÃO: Passa o ID para o DELETE funcionar
               title={d.nomeDispositivo || d.nome} 
-              consumption={d.ultimoConsumo} // AQUI: Também mostra o último consumo antes de desligar
+              consumption={d.ultimoConsumo} 
               image={NFt2} 
               extra="opacity-60" 
               onViewDetails={() => handleVerDetalhes(d.dispositivoId)}
+              onRefresh={fetchDispositivos} // CORREÇÃO: Atualiza a lista após eliminar
             />
           ))}
         </div>

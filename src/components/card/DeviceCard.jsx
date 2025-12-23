@@ -1,39 +1,97 @@
+import React, { useState } from "react";
 import Card from "components/card";
+import { MdDelete } from "react-icons/md"; // Certifica-te que tens react-icons instalado
+import { apiRequest } from "services/api";
 
-// Adicionamos 'onViewDetails' às props
-const DeviceCard = ({ title, consumption, extra, onViewDetails }) => {
+const DeviceCard = ({ id, title, consumption, extra, onViewDetails, onRefresh }) => {
+  const [showModal, setShowModal] = useState(false);
+  const token = localStorage.getItem("userToken");
+
+  const handleDelete = async () => {
+    try {
+      // Chama o teu endpoint [HttpDelete("{id}")]
+      await apiRequest(`/dispositivo/${id}`, "DELETE", null, token);
+      setShowModal(false);
+      if (onRefresh) onRefresh(); // Função para recarregar a lista na página pai
+      alert("Dispositivo eliminado com sucesso.");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao eliminar o dispositivo.");
+    }
+  };
+
   return (
-    <Card
-      extra={`flex flex-col w-full h-full !p-4 3xl:p-![18px] bg-white ${extra}`}
-    >
-      <div className="h-full w-full flex flex-col justify-between">
-        <div>
-          {/* Imagem do Dispositivo */}
-          <div className="relative w-full">
+    <>
+      <Card
+        extra={`flex flex-col w-full h-full !p-4 3xl:p-![18px] bg-white relative ${extra}`}
+      >
+        {/* ÍCONE DE ELIMINAR - Canto Superior Direito */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // Impede que clique no ícone abra os detalhes
+            setShowModal(true);
+          }}
+          className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors duration-200"
+          title="Eliminar Dispositivo"
+        >
+          <MdDelete className="h-6 w-6" />
+        </button>
+
+        <div className="h-full w-full flex flex-col justify-between">
+          <div>
+            <div className="relative w-full"></div>
+
+            {/* Informação Principal */}
+            <div className="mb-6 flex flex-col items-start px-1 mt-4">
+              <p className="text-lg font-bold text-navy-700 dark:text-white">
+                {title}
+              </p>
+              <p className="mt-1 text-sm font-bold text-brand-500 dark:text-white">
+                Consumo Atual: <span className="text-navy-700 dark:text-white">{consumption} kWh</span>
+              </p>
+            </div>
           </div>
 
-          {/* Informação Principal: Título e Consumo */}
-          <div className="mb-6 flex flex-col items-start px-1">
-            <p className="text-lg font-bold text-navy-700 dark:text-white">
-              {title}
-            </p>
-            <p className="mt-1 text-sm font-bold text-brand-500 dark:text-white">
-              Consumo Atual: <span className="text-navy-700 dark:text-white">{consumption} kWh</span>
-            </p>
+          {/* Botão Ver Detalhes */}
+          <div className="flex items-center justify-center">
+            <button
+              onClick={onViewDetails}
+              className="w-full linear rounded-[20px] bg-brand-900 px-4 py-2 text-base font-medium text-white transition duration-200 hover:bg-brand-800 active:bg-brand-700 dark:bg-brand-400 dark:hover:bg-brand-300 dark:active:opacity-90"
+            >
+              Ver Detalhes
+            </button>
           </div>
         </div>
+      </Card>
 
-        {/* Botão Centrado na Base */}
-        <div className="flex items-center justify-center">
-          <button
-            onClick={onViewDetails} // AQUI: Liga o clique à função de navegação
-            className="w-full linear rounded-[20px] bg-brand-900 px-4 py-2 text-base font-medium text-white transition duration-200 hover:bg-brand-800 active:bg-brand-700 dark:bg-brand-400 dark:hover:bg-brand-300 dark:active:opacity-90"
-          >
-            Ver Detalhes
-          </button>
+      {/* POP-UP (MODAL) DE CONFIRMAÇÃO */}
+      {showModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-navy-800 p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4">
+            <h3 className="text-xl font-bold text-navy-700 dark:text-white mb-2">
+              Confirmar Eliminação
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Tens a certeza que queres eliminar o dispositivo <b>{title}</b>? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 px-4 py-2 rounded-xl bg-gray-100 dark:bg-navy-700 text-navy-700 dark:text-white font-bold hover:bg-gray-200 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition"
+              >
+                Sim, Eliminar
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </Card>
+      )}
+    </>
   );
 };
 

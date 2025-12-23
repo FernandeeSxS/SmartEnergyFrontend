@@ -17,20 +17,32 @@ const Marketplace = () => {
       const data = await apiRequest("/espaco/utilizador", "GET", null, token);
       
       if (data && data.length > 0) {
-        // 2. Para cada espaço, buscar o seu consumo total usando o novo endpoint
+        // 2. Para cada espaço, buscar o consumo e a contagem de dispositivos
         const espacosComDados = await Promise.all(
           data.map(async (espaco) => {
             try {
-              // Ajusta a rota para coincidir com o teu Controller (ex: /consumo/espaco/{id}/total)
+              // Chamada para o consumo total
               const consumoTotal = await apiRequest(`/consumo/espaco/${espaco.espacoId}/total`, "GET", null, token);
-              return { ...espaco, consumoTotal };
+              
+              // Chamada para os dispositivos deste espaço para obtermos a contagem
+              // Se tiveres um endpoint tipo /dispositivo/espaco/{id}, usa-o.
+              // Caso contrário, usamos a lista geral filtrada (menos eficiente) ou um endpoint de count.
+              const dispositivos = await apiRequest(`/dispositivo/espaco/${espaco.espacoId}`, "GET", null, token);
+              
+              return { 
+                ...espaco, 
+                consumoTotal, 
+                qtdDispositivos: dispositivos ? dispositivos.length : 0 
+              };
             } catch (err) {
-              console.error(`Erro ao buscar consumo do espaço ${espaco.espacoId}:`, err);
-              return { ...espaco, consumoTotal: 0 };
+              console.error(`Erro ao buscar dados do espaço ${espaco.espacoId}:`, err);
+              return { ...espaco, consumoTotal: 0, qtdDispositivos: 0 };
             }
           })
         );
         setEspacos(espacosComDados);
+      } else {
+        setEspacos([]);
       }
     } catch (err) {
       console.error("Erro ao buscar espaços:", err);
@@ -70,19 +82,21 @@ const Marketplace = () => {
           </h4>
         </div>
 
-        <div className="z-20 grid grid-cols-1 gap-5 md:grid-cols-4">
+        <div className="z-20 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {espacos.length === 0 && (
-            <p className="text-gray-500 col-span-full text-center">
+            <p className="text-gray-500 col-span-full text-center py-10">
               Nenhum espaço encontrado.
             </p>
           )}
           {espacos.map((espaco) => (
             <NftCard
               key={espaco.espacoId}
+              id={espaco.espacoId} // Essencial para o DELETE
               title={espaco.nomeEspaco}
-              author={`${espaco.tamanhoEspaco} m²`}
-              // Exibe o valor vindo do novo endpoint
-              price={`${espaco.consumoTotal || 0} kWh`}
+              author={espaco.tamanhoEspaco}
+              price={espaco.consumoTotal || 0}
+              dispositivoCount={espaco.qtdDispositivos} // Passa a contagem para o Modal de alerta
+              onRefresh={fetchEspacosComConsumo} // Para atualizar a lista após eliminar
               onViewDevices={() =>
                 handleVerDispositivos(espaco.espacoId, espaco.nomeEspaco)
               }
