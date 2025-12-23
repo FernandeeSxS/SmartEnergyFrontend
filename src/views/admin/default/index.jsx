@@ -15,35 +15,30 @@ import tableDataCheck from "./variables/tableDataCheck.json";
 import { apiRequest } from "services/api";
 
 const Dashboard = () => {
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("userToken");
+
   const [data, setData] = useState({
     espacosCount: 0,
     dispositivosCount: 0,
     consumoKwh: 0,
     consumoEuro: 0,
-    pegadaCarbono: 0,
     listaDispositivos: [],
   });
 
-  const [chartData, setChartData] = useState({ series: [], categories: [] });
-  const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("userToken");
+  const [lineChartData, setLineChartData] = useState({ series: [], categories: [] });
+  const [barChartData, setBarChartData] = useState({ series: [], categories: [] });
 
-  // FUNÇÃO: Gerar os últimos 7 dias e calcular o acumulado
-  const processarHistoricoSeteDiasAcumulado = (historico) => {
-    if (!historico) return { series: [], categories: [] };
-
+  const processarHistoricoSeteDias = (historico) => {
+    if (!historico || historico.length === 0) return { series: [], categories: [] };
     const labels = [];
     const datasParaComparar = [];
-
-    // 1. Gerar as datas dos últimos 7 dias (de 6 dias atrás até hoje)
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       labels.push(`${d.getDate()}/${d.getMonth() + 1}`);
       datasParaComparar.push(d.toISOString().split("T")[0]);
     }
-
-    // 2. Calcular o acumulado total ANTES do início da janela de 7 dias
     const dataLimite = new Date();
     dataLimite.setDate(dataLimite.getDate() - 6);
     dataLimite.setHours(0, 0, 0, 0);
@@ -52,18 +47,16 @@ const Dashboard = () => {
       .filter((reg) => new Date(reg.timestamp) < dataLimite)
       .reduce((acc, curr) => acc + parseFloat(curr.valorConsumido || 0), 0);
 
-    // 3. Mapear o acumulado dia a dia dentro da janela
     const serieDados = datasParaComparar.map((dataIso) => {
       const consumoDoDia = historico
         .filter((reg) => reg.timestamp.startsWith(dataIso))
         .reduce((acc, curr) => acc + parseFloat(curr.valorConsumido || 0), 0);
-      
       somaAcumulada += consumoDoDia;
       return parseFloat(somaAcumulada.toFixed(2));
     });
 
     return {
-      series: [{ name: "Consumo Total (kWh)", data: serieDados }],
+      series: [{ name: "Consumo Acumulado", data: serieDados }],
       categories: labels,
     };
   };
@@ -71,17 +64,17 @@ const Dashboard = () => {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      const [espacos, dispositivos, totalKwh, precoKwh, todosConsumos] = await Promise.all([
-        apiRequest("/espaco/utilizador", "GET", null, token),
+
+      const [dispositivosRaw, totalKwh, precoKwh, todosConsumos] = await Promise.all([
         apiRequest("/Dispositivo/utilizador", "GET", null, token),
         apiRequest("/consumo/total", "GET", null, token),
         apiRequest("/precoenergia/valor-atual", "GET", null, token),
         apiRequest("/consumo/meusConsumos", "GET", null, token),
       ]);
 
-      // PieChart Logic (dispositivos com consumo mais recente)
-      const dispositivosComDados = await Promise.all(
-        dispositivos.map(async (disp) => {
+      // --- RECUPERAR CONSUMO POR DISPOSITIVO (Para o PieChart não ficar em branco) ---
+      const dispositivosComConsumo = await Promise.all(
+        dispositivosRaw.map(async (disp) => {
           try {
             const hist = await apiRequest(`/consumo/dispositivo/${disp.dispositivoId}`, "GET", null, token);
             let ultimo = 0;
@@ -90,52 +83,88 @@ const Dashboard = () => {
               ultimo = parseFloat(rec.valorConsumido || 0);
             }
             return { ...disp, ultimoConsumo: ultimo };
-          } catch { return { ...disp, ultimoConsumo: 0 }; }
+          } catch {
+            return { ...disp, ultimoConsumo: 0 };
+          }
         })
       );
 
-      setChartData(processarHistoricoSeteDiasAcumulado(todosConsumos));
+      // --- LÓGICA DE ESPAÇOS (Para o WeeklyRevenue) ---
+      const espacoIdsUnicos = [...new Set(dispositivosRaw.map(d => d.espacoId))];
 
-      const consumoFinal = parseFloat(totalKwh || 0);
-      const precoAtual = parseFloat(precoKwh) > 0 ? parseFloat(precoKwh) : 0.15;
+      const consumosPorEspaco = await Promise.all(
+        espacoIdsUnicos.map(async (id) => {
+          try {
+            const infoEspaco = await apiRequest(`/espaco/${id}`, "GET", null, token);
+            const consumoTotal = await apiRequest(`/consumo/espaco/${id}/total`, "GET", null, token);
+            return {
+              nome: infoEspaco.nomeEspaco || infoEspaco.nome || `Espaço ${id}`,
+              valor: parseFloat(consumoTotal || 0)
+            };
+          } catch (err) {
+            return null;
+          }
+        })
+      );
+
+      const dadosEspacosValidos = consumosPorEspaco.filter(item => item !== null);
+
+      // --- ATUALIZAR ESTADOS ---
+      setBarChartData({
+        series: [{ name: "Consumo Total (kWh)", data: dadosEspacosValidos.map(d => d.valor) }],
+        categories: dadosEspacosValidos.map(d => d.nome)
+      });
+
+      setLineChartData(processarHistoricoSeteDias(todosConsumos));
+
+      const consumoFinalNum = parseFloat(totalKwh || 0);
+      const precoAtualNum = parseFloat(precoKwh || 0.15);
 
       setData({
-        espacosCount: espacos?.length || 0,
-        dispositivosCount: dispositivos?.length || 0,
-        consumoKwh: consumoFinal.toFixed(2),
-        consumoEuro: (consumoFinal * precoAtual).toFixed(2),
-        pegadaCarbono: (consumoFinal * 0.475).toFixed(2),
-        listaDispositivos: dispositivosComDados,
+        espacosCount: espacoIdsUnicos.length,
+        dispositivosCount: dispositivosRaw.length,
+        consumoKwh: consumoFinalNum.toFixed(2),
+        consumoEuro: (consumoFinalNum * precoAtualNum).toFixed(2),
+        listaDispositivos: dispositivosComConsumo, // Agora com ultimoConsumo!
       });
+
     } catch (err) {
-      console.error("Erro Dashboard:", err);
-    } finally { setLoading(false); }
+      console.error("Erro geral no Dashboard:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { fetchDashboardStats(); }, [token]);
+  useEffect(() => {
+    fetchDashboardStats();
+  }, [token]);
 
   return (
     <div className="pt-3">
-      <div className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-6">
-        <Widget icon={<MdBarChart className="h-7 w-7" />} title="Espaços" subtitle={loading ? "..." : data.espacosCount} />
+      <div className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <Widget icon={<MdBarChart className="h-7 w-7" />} title="Espaços Ativos" subtitle={loading ? "..." : data.espacosCount} />
         <Widget icon={<IoDocuments className="h-6 w-6" />} title="Dispositivos" subtitle={loading ? "..." : data.dispositivosCount} />
-        <Widget icon={<MdBarChart className="h-7 w-7" />} title="Consumo Global" subtitle={`${data.consumoKwh} kWh`} />
+        <Widget icon={<MdBarChart className="h-7 w-7" />} title="Consumo Total" subtitle={`${data.consumoKwh} kWh`} />
         <Widget icon={<MdDashboard className="h-6 w-6" />} title="Custo Estimado" subtitle={`${data.consumoEuro}€`} />
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
         <TotalSpent 
           totalGasto={data.consumoEuro} 
-          series={chartData.series} 
-          categories={chartData.categories} 
+          series={lineChartData.series} 
+          categories={lineChartData.categories} 
         />
-        <WeeklyRevenue />
+        <WeeklyRevenue 
+          dataBarra={barChartData.series} 
+          categoriasBarra={barChartData.categories} 
+        />
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
         <CheckTable columnsData={columnsDataCheck} tableData={tableDataCheck} />
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <DailyTraffic />
+          {/* Aqui estava o bug: listaDispositivos agora tem os consumos individuais de volta */}
           <PieChartCard dispositivos={data.listaDispositivos} />
         </div>
       </div>
