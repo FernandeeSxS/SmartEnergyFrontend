@@ -70,7 +70,10 @@ export default function SignIn() {
     className="mb-3 w-full border p-2"
   />
 
-  <button type="submit">
+  <button
+    type="submit"
+    className="linear mt-4 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:hover:bg-brand-300"
+  >
     Iniciar Sessão
   </button>
 </form>

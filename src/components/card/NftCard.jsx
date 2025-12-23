@@ -8,11 +8,6 @@ const NftCard = ({ title, author, price, image, extra, onViewDevices }) => {
     >
       <div className="h-full w-full">
         <div className="relative w-full">
-          <img
-            src={image}
-            className="mb-3 h-full w-full rounded-xl 3xl:h-full 3xl:w-full"
-            alt={title}
-          />
         </div>
 
         <div className="mb-3 flex items-center justify-between px-1 md:flex-col md:items-start lg:flex-row lg:justify-between xl:flex-col xl:items-start 3xl:flex-row 3xl:justify-between">

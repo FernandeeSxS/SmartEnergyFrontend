@@ -1,16 +1,39 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import RtlLayout from "layouts/rtl";
 import AdminLayout from "layouts/admin";
 import AuthLayout from "layouts/auth";
+import RtlLayout from "layouts/rtl";
+
+// Rota privada
+const PrivateRoute = ({ children }) => {
+  const token = localStorage.getItem("userToken");
+  return token ? children : <Navigate to="/auth/sign-in" replace />;
+};
+
 const App = () => {
   return (
     <Routes>
+      {/* Rota pública do login */}
       <Route path="auth/*" element={<AuthLayout />} />
-      <Route path="admin/*" element={<AdminLayout />} />
+
+      {/* Rota privada do dashboard */}
+      <Route
+        path="admin/*"
+        element={
+          <PrivateRoute>
+            <AdminLayout />
+          </PrivateRoute>
+        }
+      />
+
       <Route path="rtl/*" element={<RtlLayout />} />
-      <Route path="/" element={<Navigate to="/admin" replace />} />
+
+      {/* Redirecionamento da raiz */}
+      <Route
+        path="/"
+        element={<Navigate to="/auth/sign-in" replace />}
+      />
     </Routes>
   );
 };
