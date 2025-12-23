@@ -1,35 +1,118 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import Card from "components/card";
+import { apiRequest } from "services/api";
 
 const DetalheDispositivo = () => {
-  const [consumoAtual, setConsumoAtual] = useState("1.2 kWh");
+  const { id } = useParams(); // dispositivoId da URL
+  const token = localStorage.getItem("userToken");
 
-  const dispositivo = {
-    nome: "Frigorífico Samsung",
-    modelo: "RT38K5530S8",
-    estado: "Ligado",
-    localizacao: "Cozinha"
-  };
+  const [dispositivo, setDispositivo] = useState(null);
+  const [nomeModelo, setNomeModelo] = useState("");
+  const [nomeEspaco, setNomeEspaco] = useState("");
+  const [consumoAtual, setConsumoAtual] = useState("0 kWh");
+  const [ultimoConsumo, setUltimoConsumo] = useState(null); // Guardar o último consumo
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const handleObterConsumo = () => {
-    alert("A ligar ao dispositivo para ler sensores...");
-    setConsumoAtual("1.45 kWh"); 
-  };
+  useEffect(() => {
+    const fetchDispositivo = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        // 1. Buscar dados do dispositivo
+        const data = await apiRequest(`/dispositivo/${id}`, "GET", null, token);
+        setDispositivo(data);
+
+        // 2. Buscar nome do modelo
+        if (data.modeloDId) {
+          const modeloData = await apiRequest(`/modelo/${data.modeloDId}`, "GET", null, token);
+          setNomeModelo(modeloData.nomeModelo || "Desconhecido");
+        }
+
+        // 3. Buscar nome do espaço
+        if (data.espacoId) {
+          const espacoData = await apiRequest(`/espaco/${data.espacoId}`, "GET", null, token);
+          setNomeEspaco(espacoData.nomeEspaco || "Desconhecido");
+        }
+
+        // 4. Buscar consumo atual do dispositivo
+        const consumos = await apiRequest(`/consumo/dispositivo/${id}`, "GET", null, token);
+        if (consumos && consumos.length > 0) {
+          const ultimo = consumos[consumos.length - 1];
+          setUltimoConsumo(ultimo);
+          setConsumoAtual(`${ultimo.valorConsumido} kWh`);
+        } else {
+          setConsumoAtual("0 kWh");
+        }
+
+      } catch (err) {
+        console.error("Erro ao buscar dispositivo:", err);
+        setError("Não foi possível carregar os detalhes do dispositivo.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDispositivo();
+  }, [id, token]);
+
+  const handleObterGastos = async () => {
+  if (!dispositivo) return;
+
+  try {
+    // 1. Buscar consumos do dispositivo
+    const consumos = await apiRequest(`/consumo/dispositivo/${id}`, "GET", null, token);
+
+    if (!consumos || consumos.length === 0) {
+      alert("Não existem consumos registados para este dispositivo.");
+      return;
+    }
+
+    // 2. Pegar no último consumo
+    const ultimoConsumo = consumos[consumos.length - 1];
+    setConsumoAtual(`${ultimoConsumo.valorConsumido} kWh`);
+
+    // 3. Registar gastos associados ao consumo
+    const registoId = ultimoConsumo.RegistoConsumoId || ultimoConsumo.registoConsumoId; // depende do backend
+    if (!registoId) {
+      alert("ID de registo do consumo não encontrado.");
+      return;
+    }
+
+    const response = await apiRequest(
+      `/precoenergia/registar?consumoRegistoId=${registoId}`,
+      "POST",
+      null,
+      token
+    );
+
+    alert(response || "Gastos associados ao consumo registados com sucesso!");
+
+  } catch (err) {
+    console.error("Erro ao registar gastos:", err);
+    alert("Falha ao registar gastos associados ao consumo.");
+  }
+};
+
+
+  if (loading) return <p>Carregando dispositivo...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
+  if (!dispositivo) return <p>Dispositivo não encontrado.</p>;
 
   return (
     <div className="flex w-full flex-col gap-5 mt-5">
       <div className="w-full mt-3 flex h-fit flex-col gap-5 lg:grid lg:grid-cols-12">
         
-        {/* Coluna Esquerda: Imagem e Status */}
+        {/* Coluna Esquerda */}
         <div className="col-span-12 lg:col-span-4 lg:!mb-0">
           <Card extra={"items-center w-full h-full p-[16px] bg-cover"}>
-            <div className="relative mt-1 flex h-32 w-full justify-center rounded-xl bg-gradient-to-r from-brandLinear to-brand-500" />
-            
             <div className="mt-16 flex flex-col items-center">
               <h4 className="text-xl font-bold text-navy-700 dark:text-white">
-                {dispositivo.nome}
+                {dispositivo.nomeDispositivo}
               </h4>
-              <p className="text-base font-normal text-gray-600">{dispositivo.localizacao}</p>
+              <p className="text-base font-normal text-gray-600">{nomeEspaco}</p>
             </div>
 
             <div className="mt-6 mb-3 flex gap-4 md:!gap-14">
@@ -38,7 +121,13 @@ const DetalheDispositivo = () => {
                 <p className="text-sm font-normal text-gray-600">Última Leitura</p>
               </div>
               <div className="flex flex-col items-center justify-center">
-                <p className="text-2xl font-bold text-green-500">{dispositivo.estado}</p>
+                <p
+                  className={`text-2xl font-bold ${
+                    dispositivo.status === "Ligado" ? "text-green-500" : "text-red-500"
+                  }`}
+                >
+                  {dispositivo.status || "Desconhecido"}
+                </p>
                 <p className="text-sm font-normal text-gray-600">Estado</p>
               </div>
             </div>
@@ -49,9 +138,8 @@ const DetalheDispositivo = () => {
           </Card>
         </div>
 
-        {/* Coluna Direita: Configurações (Ajustada para encostar o botão abaixo) */}
+        {/* Coluna Direita */}
         <div className="col-span-12 lg:col-span-8">
-          {/* Adicionada a classe 'flex flex-col' no Card */}
           <Card extra={"w-full h-full p-4 flex flex-col"}>
             <h4 className="mb-[30px] px-2 text-xl font-bold text-navy-700 dark:text-white">
               Configurações do Dispositivo
@@ -62,7 +150,7 @@ const DetalheDispositivo = () => {
                 <label className="text-sm text-gray-600 dark:text-white ml-1 font-bold">Nome</label>
                 <input 
                   type="text" 
-                  defaultValue={dispositivo.nome}
+                  defaultValue={dispositivo.nomeDispositivo}
                   className="mt-2 flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                 />
               </div>
@@ -71,22 +159,23 @@ const DetalheDispositivo = () => {
                 <label className="text-sm text-gray-600 dark:text-white ml-1 font-bold">Modelo</label>
                 <input 
                   type="text" 
-                  defaultValue={dispositivo.modelo}
+                  value={nomeModelo || "Desconhecido"}
+                  readOnly
                   className="mt-2 flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
                 />
               </div>
 
               <div className="flex flex-col mb-4 md:col-span-2">
                 <label className="text-sm text-gray-600 dark:text-white ml-1 font-bold">Espaço / Divisão</label>
-                <select className="mt-2 flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white dark:bg-navy-800">
-                  <option value="cozinha">Cozinha</option>
-                  <option value="sala">Sala de Estar</option>
-                  <option value="quarto">Quarto</option>
-                </select>
+                <input 
+                  type="text" 
+                  value={nomeEspaco || "Desconhecido"}
+                  readOnly
+                  className="mt-2 flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none border-gray-200 dark:!border-white/10 dark:text-white"
+                />
               </div>
             </div>
 
-            {/* O 'mt-auto' faz com que o botão seja empurrado para o fim do card */}
             <button className="mt-auto w-full rounded-xl bg-brand-500 py-3 text-white font-bold transition duration-200 hover:bg-brand-600">
               Guardar Alterações
             </button>
@@ -94,7 +183,7 @@ const DetalheDispositivo = () => {
         </div>
       </div>
 
-      {/* Terceiro Card: Monitorização */}
+      {/* Monitorização */}
       <div className="w-full">
         <Card extra="flex-col bg-white w-full px-6 py-10 items-center justify-center">
           <div className="text-center">
@@ -102,13 +191,13 @@ const DetalheDispositivo = () => {
               Monitorização em Tempo Real
             </h4>
             <p className="mt-2 text-sm text-gray-600 mb-6">
-              Clique no botão abaixo para ler os sensores do {dispositivo.nome} agora.
+              Clique no botão abaixo para obter os gastos associados ao consumo atual do {dispositivo.nomeDispositivo}.
             </p>
             <button 
-              onClick={handleObterConsumo}
+              onClick={handleObterGastos}
               className="px-10 py-4 bg-navy-700 text-white rounded-2xl font-bold text-lg transition duration-200 hover:bg-navy-800 dark:bg-white dark:text-navy-700 dark:hover:bg-white/90 shadow-lg"
             >
-              Obter Consumo Atual
+              Obter Gastos Associados ao Consumo Atual
             </button>
           </div>
         </Card>
