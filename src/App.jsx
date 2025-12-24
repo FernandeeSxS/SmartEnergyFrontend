@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 import AdminLayout from "layouts/admin";
 import AuthLayout from "layouts/auth";
-import RtlLayout from "layouts/rtl";
 
 // Rota privada
 const PrivateRoute = ({ children }) => {
@@ -26,8 +25,6 @@ const App = () => {
           </PrivateRoute>
         }
       />
-
-      <Route path="rtl/*" element={<RtlLayout />} />
 
       {/* Redirecionamento da raiz */}
       <Route

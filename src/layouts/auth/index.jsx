@@ -1,5 +1,4 @@
 /* eslint-disable */
-import Footer from "components/footer/FooterAuthDefault"; // Podes editar este ficheiro para o copyright
 import authImg from "assets/img/auth/auth.png"; // Substitui este ficheiro por uma imagem de energia
 import { Link, Routes, Route, Navigate } from "react-router-dom";
 import routes from "routes.js";

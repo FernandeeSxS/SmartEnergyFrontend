@@ -2,15 +2,21 @@ import Card from "components/card";
 import React, { useState, useEffect } from "react";
 import { apiRequest } from "services/api";
 
+// Recebemos o id, nome e email como props
 const General = ({ id, nome, email }) => {
+  // 1. Estados para controlar os inputs e permitir a edição
   const [formData, setFormData] = useState({ nome: "", email: "" });
 
+  // 2. Sincronizar os dados quando eles chegam da API (via props)
   useEffect(() => {
     setFormData({ nome: nome || "", email: email || "" });
   }, [nome, email]);
 
+  // 3. Função para chamar o endpoint PUT
   const handleUpdate = async () => {
     const token = localStorage.getItem("userToken");
+    
+    // O objeto enviado corresponde ao UpdateUserDto no C#
     const model = {
       nome: formData.nome,
       email: formData.email
@@ -44,11 +50,7 @@ const General = ({ id, nome, email }) => {
             value={formData.nome}
             onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
             placeholder="Seu nome" 
-            /* Ajuste aqui: 
-               text-navy-700 (modo claro)
-               dark:text-navy-900 (modo escuro - cor escura para ler no fundo branco teimoso)
-            */
-            className="mt-2 w-full font-medium text-navy-700 dark:text-navy-900 bg-white dark:bg-white outline-none border-b border-gray-200 focus:border-brand-500 transition-all px-2 py-1 rounded-md"
+            className="mt-2 w-full font-medium text-navy-700 dark:text-white bg-transparent outline-none border-b border-transparent focus:border-brand-500 transition-all"
           />
         </div>
 
@@ -60,11 +62,7 @@ const General = ({ id, nome, email }) => {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             placeholder="exemplo@email.com" 
-            /* Ajuste aqui: 
-               bg-white dark:bg-white (força o fundo branco em ambos para ficar padronizado)
-               dark:text-navy-900 (cor do texto escura no dark mode)
-            */
-            className="mt-2 w-full font-medium text-navy-700 dark:text-navy-900 bg-white dark:bg-white outline-none border-b border-gray-200 focus:border-brand-500 transition-all px-2 py-1 rounded-md"
+            className="mt-2 w-full font-medium text-navy-700 dark:text-white bg-transparent outline-none border-b border-transparent focus:border-brand-500 transition-all"
           />
         </div>
       </div>

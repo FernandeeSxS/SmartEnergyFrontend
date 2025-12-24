@@ -5,7 +5,6 @@ import MainDashboard from "views/admin/default";
 import NFTMarketplace from "views/admin/marketplace";
 import Profile from "views/admin/profile";
 import DataTables from "views/admin/tables";
-import RTLDefault from "views/rtl/default";
 import DetalheEspaco from "views/admin/space";
 import DetalheDispositivo from "./views/admin/deviceinfo";
 import SignUp from "views/auth/SignUp"; // Certifique-se de que o nome do arquivo e o caminho estão corretos
