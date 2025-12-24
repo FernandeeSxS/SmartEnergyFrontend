@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { MdBarChart, MdDashboard } from "react-icons/md";
-import { IoDocuments } from "react-icons/io5";
+import {
+  MdOutlineMapsHomeWork,
+  MdDevices,
+  MdElectricBolt,
+  MdAttachMoney
+} from "react-icons/md";
 
 // Componentes da UI
 import Widget from "components/widget/Widget";
 import TotalSpent from "views/admin/default/components/TotalSpent";
 import WeeklyRevenue from "views/admin/default/components/WeeklyRevenue";
-import DailyTraffic from "views/admin/default/components/DailyTraffic";
 import PieChartCard from "views/admin/default/components/PieChartCard";
-import CheckTable from "views/admin/default/components/CheckTable";
-
-import { columnsDataCheck } from "./variables/columnsData";
-import tableDataCheck from "./variables/tableDataCheck.json";
+import DispositivosPorEspaco from "views/admin/default/components/DailyTraffic";
 import { apiRequest } from "services/api";
 
 const Dashboard = () => {
@@ -28,6 +28,7 @@ const Dashboard = () => {
 
   const [lineChartData, setLineChartData] = useState({ series: [], categories: [] });
   const [barChartData, setBarChartData] = useState({ series: [], categories: [] });
+  const [dispositivosPorEspacoData, setDispositivosPorEspacoData] = useState([]);
 
   const processarHistoricoSeteDias = (historico) => {
     if (!historico || historico.length === 0) return { series: [], categories: [] };
@@ -65,14 +66,26 @@ const Dashboard = () => {
     try {
       setLoading(true);
 
-      const [dispositivosRaw, totalKwh, precoKwh, todosConsumos] = await Promise.all([
+      const [espacosRaw, dispositivosRaw, totalKwh, precoKwh, todosConsumos] = await Promise.all([
+        apiRequest("/espaco/utilizador", "GET", null, token),
         apiRequest("/Dispositivo/utilizador", "GET", null, token),
         apiRequest("/consumo/total", "GET", null, token),
         apiRequest("/precoenergia/valor-atual", "GET", null, token),
         apiRequest("/consumo/meusConsumos", "GET", null, token),
       ]);
 
-      // --- RECUPERAR CONSUMO POR DISPOSITIVO (Para o PieChart não ficar em branco) ---
+      const dadosContagem = espacosRaw.map(espaco => {
+        const dispositivosNesteEspaco = dispositivosRaw.filter(
+          disp => String(disp.espacoId) === String(espaco.espacoId || espaco.id)
+        );
+        return {
+          nome: espaco.nomeEspaco || espaco.nome,
+          quantidade: dispositivosNesteEspaco.length
+        };
+      });
+
+      setDispositivosPorEspacoData(dadosContagem);
+
       const dispositivosComConsumo = await Promise.all(
         dispositivosRaw.map(async (disp) => {
           try {
@@ -83,33 +96,25 @@ const Dashboard = () => {
               ultimo = parseFloat(rec.valorConsumido || 0);
             }
             return { ...disp, ultimoConsumo: ultimo };
-          } catch {
-            return { ...disp, ultimoConsumo: 0 };
-          }
+          } catch { return { ...disp, ultimoConsumo: 0 }; }
         })
       );
 
-      // --- LÓGICA DE ESPAÇOS (Para o WeeklyRevenue) ---
-      const espacoIdsUnicos = [...new Set(dispositivosRaw.map(d => d.espacoId))];
-
       const consumosPorEspaco = await Promise.all(
-        espacoIdsUnicos.map(async (id) => {
+        espacosRaw.map(async (espaco) => {
           try {
-            const infoEspaco = await apiRequest(`/espaco/${id}`, "GET", null, token);
+            const id = espaco.espacoId || espaco.id;
             const consumoTotal = await apiRequest(`/consumo/espaco/${id}/total`, "GET", null, token);
             return {
-              nome: infoEspaco.nomeEspaco || infoEspaco.nome || `Espaço ${id}`,
+              nome: espaco.nomeEspaco || espaco.nome,
               valor: parseFloat(consumoTotal || 0)
             };
-          } catch (err) {
-            return null;
-          }
+          } catch { return null; }
         })
       );
 
       const dadosEspacosValidos = consumosPorEspaco.filter(item => item !== null);
 
-      // --- ATUALIZAR ESTADOS ---
       setBarChartData({
         series: [{ name: "Consumo Total (kWh)", data: dadosEspacosValidos.map(d => d.valor) }],
         categories: dadosEspacosValidos.map(d => d.nome)
@@ -121,15 +126,15 @@ const Dashboard = () => {
       const precoAtualNum = parseFloat(precoKwh || 0.15);
 
       setData({
-        espacosCount: espacoIdsUnicos.length,
+        espacosCount: espacosRaw.length,
         dispositivosCount: dispositivosRaw.length,
         consumoKwh: consumoFinalNum.toFixed(2),
         consumoEuro: (consumoFinalNum * precoAtualNum).toFixed(2),
-        listaDispositivos: dispositivosComConsumo, // Agora com ultimoConsumo!
+        listaDispositivos: dispositivosComConsumo,
       });
 
     } catch (err) {
-      console.error("Erro geral no Dashboard:", err);
+      console.error("Erro ao carregar dashboard:", err);
     } finally {
       setLoading(false);
     }
@@ -141,13 +146,31 @@ const Dashboard = () => {
 
   return (
     <div className="pt-3">
+      {/* 1. Widgets de Sumário (4 Colunas) */}
       <div className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
-        <Widget icon={<MdBarChart className="h-7 w-7" />} title="Espaços Ativos" subtitle={loading ? "..." : data.espacosCount} />
-        <Widget icon={<IoDocuments className="h-6 w-6" />} title="Dispositivos" subtitle={loading ? "..." : data.dispositivosCount} />
-        <Widget icon={<MdBarChart className="h-7 w-7" />} title="Consumo Total" subtitle={`${data.consumoKwh} kWh`} />
-        <Widget icon={<MdDashboard className="h-6 w-6" />} title="Custo Estimado" subtitle={`${data.consumoEuro}€`} />
+        <Widget 
+          icon={<MdOutlineMapsHomeWork className="h-7 w-7" />} 
+          title="Espaços Ativos" 
+          subtitle={loading ? "..." : data.espacosCount} 
+        />
+        <Widget 
+          icon={<MdDevices className="h-6 w-6" />} 
+          title="Dispositivos" 
+          subtitle={loading ? "..." : data.dispositivosCount} 
+        />
+        <Widget 
+          icon={<MdElectricBolt className="h-7 w-7" />} 
+          title="Consumo Total" 
+          subtitle={`${data.consumoKwh} kWh`} 
+        />
+        <Widget 
+          icon={<MdAttachMoney className="h-6 w-6" />} 
+          title="Custo Estimado" 
+          subtitle={`${data.consumoEuro}€`} 
+        />
       </div>
 
+      {/* 2. Primeira Linha de Gráficos (2 Colunas) */}
       <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
         <TotalSpent 
           totalGasto={data.consumoEuro} 
@@ -160,13 +183,10 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
-        <CheckTable columnsData={columnsDataCheck} tableData={tableDataCheck} />
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <DailyTraffic />
-          {/* Aqui estava o bug: listaDispositivos agora tem os consumos individuais de volta */}
+      {/* 3. Segunda Linha de Gráficos (2 Colunas - Iguais às de cima) */}
+      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+          <DispositivosPorEspaco data={dispositivosPorEspacoData} />
           <PieChartCard dispositivos={data.listaDispositivos} />
-        </div>
       </div>
     </div>
   );

@@ -54,38 +54,38 @@ export default function SignIn() {
         {error && <p className="mb-4 text-red-500 text-sm">{error}</p>}
 
         <form onSubmit={handleLogin}>
-  <input
-    type="email"
-    placeholder="Email"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-    className="mb-3 w-full border p-2"
-  />
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mb-3 w-full border p-2"
+          />
 
-  <input
-    type="password"
-    placeholder="Password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    className="mb-3 w-full border p-2"
-  />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="mb-3 w-full border p-2"
+          />
 
-  <button
-    type="submit"
-    className="linear mt-4 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:hover:bg-brand-300"
-  >
-    Iniciar Sessão
-  </button>
-</form>
+          <button
+            type="submit"
+            className="linear mt-4 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:hover:bg-brand-300"
+          >
+            Iniciar Sessão
+          </button>
+        </form>
 
-         
+
 
         <div className="mt-4">
           <span className="text-sm font-medium text-navy-700 dark:text-gray-600">
             Ainda não tem conta?
           </span>
           <a
-            href="/register"
+            href="/auth/sign-up"
             className="ml-1 text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white"
           >
             Crie aqui a sua conta

@@ -58,16 +58,19 @@ export default function Admin(props) {
 
   document.documentElement.dir = "ltr";
   return (
-    <div className="flex h-full w-full">
+    <div className="flex h-full w-full bg-lightPrimary dark:bg-navy-900">
       <Sidebar open={open} onClose={() => setOpen(false)} />
+      
       {/* Navbar & Main Content */}
-      <div className="h-full w-full bg-lightPrimary dark:!bg-navy-900">
-        {/* Main Content */}
+      {/* Adicionei min-h-screen para garantir que o fundo escuro cubra a página toda */}
+      <div className="h-full min-h-screen w-full bg-lightPrimary dark:!bg-navy-900">
+        
         <main
           className={`mx-[12px] h-full flex-none transition-all md:pr-2 xl:ml-[313px]`}
         >
           {/* Routes */}
-          <div className="h-full">
+          {/* min-h-screen aqui evita que, ao remover o footer, o fundo fique branco */}
+          <div className="h-full min-h-screen">
             <Navbar
               onOpenSidenav={() => setOpen(true)}
               logoText={"Horizon UI Tailwind React"}
@@ -75,15 +78,21 @@ export default function Admin(props) {
               secondary={getActiveNavbar(routes)}
               {...rest}
             />
-            <div className="pt-5s mx-auto mb-auto h-full min-h-[84vh] p-2 md:pr-2">
+            
+            {/* Container das Views */}
+            <div className="mx-auto mb-auto h-full min-h-[84vh] p-2 pt-5 md:pr-2">
               <Routes>
                 {getRoutes(routes)}
-
                 <Route
                   path="/"
                   element={<Navigate to="/admin/default" replace />}
                 />
               </Routes>
+            </div>
+
+            {/* Opcional: Se queres remover o footer mas manter o espaçamento em baixo */}
+            <div className="p-3">
+              {/* <Footer /> */}
             </div>
           </div>
         </main>

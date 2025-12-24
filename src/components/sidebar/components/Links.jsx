@@ -2,21 +2,23 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import DashIcon from "components/icons/DashIcon";
-// chakra imports
 
 export function SidebarLinks(props) {
-  // Chakra color mode
   let location = useLocation();
-
   const { routes } = props;
 
-  // verifies if routeName is the one active (in browser input)
   const activeRoute = (routeName) => {
     return location.pathname.includes(routeName);
   };
 
   const createLinks = (routes) => {
     return routes.map((route, index) => {
+      // --- ALTERAÇÃO AQUI: Verifica se a rota deve ser escondida ---
+      if (route.sidebar === false) {
+        return null;
+      }
+
+      // Normalmente filtramos para mostrar apenas o layout /admin na sidebar
       if (
         route.layout === "/admin" ||
         route.layout === "/auth" ||
@@ -49,7 +51,7 @@ export function SidebarLinks(props) {
                 </p>
               </li>
               {activeRoute(route.path) ? (
-                <div class="absolute right-0 top-px h-9 w-1 rounded-lg bg-brand-500 dark:bg-brand-400" />
+                <div className="absolute right-0 top-px h-9 w-1 rounded-lg bg-brand-500 dark:bg-brand-400" />
               ) : null}
             </div>
           </Link>
@@ -57,7 +59,7 @@ export function SidebarLinks(props) {
       }
     });
   };
-  // BRAND
+  
   return createLinks(routes);
 }
 

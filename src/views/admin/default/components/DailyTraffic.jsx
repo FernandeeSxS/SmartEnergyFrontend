@@ -1,39 +1,95 @@
 import BarChart from "components/charts/BarChart";
-import { barChartDataDailyTraffic } from "variables/charts";
-import { barChartOptionsDailyTraffic } from "variables/charts";
-import { MdArrowDropUp } from "react-icons/md";
 import Card from "components/card";
-const DailyTraffic = () => {
+import React from "react";
+
+const DispositivosPorEspaco = ({ data }) => {
+  const chartData = [
+    {
+      name: "Dispositivos",
+      data: data?.map((item) => item.quantidade) || [],
+    },
+  ];
+
+  const chartOptions = {
+    chart: { 
+      toolbar: { show: false },
+    },
+    tooltip: { style: { fontSize: "12px" }, theme: "dark" },
+    xaxis: {
+      categories: data?.map((item) => item.nome) || [],
+      labels: {
+        show: true,
+        style: { colors: "#A3AED0", fontSize: "12px", fontWeight: "500" },
+      },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      show: true,
+      tickAmount: 5,
+      labels: {
+        show: true,
+        style: { colors: "#A3AED0", fontSize: "12px", fontWeight: "500" },
+        formatter: (val) => val.toFixed(0),
+      },
+    },
+    grid: {
+      show: true,
+      borderColor: "rgba(163, 174, 208, 0.1)",
+      strokeDashArray: 5,
+      yaxis: { lines: { show: true } },
+      xaxis: { lines: { show: false } },
+    },
+    fill: {
+      type: "solid",
+      opacity: 1,
+    },
+    colors: ["#4318FF"],
+    dataLabels: { 
+      enabled: true,
+      style: {
+        fontSize: "12px",
+        fontWeight: "700",
+        colors: ["#4318FF"],
+      },
+      offsetY: -25,
+      background: {
+        enabled: true,
+        foreColor: "#fff",
+        padding: 4,
+        borderRadius: 4,
+        borderWidth: 0,
+        opacity: 0.9,
+      }
+    },
+    plotOptions: {
+      bar: { 
+        borderRadius: 8, 
+        columnWidth: "35px",
+        dataLabels: {
+          position: 'top', 
+        },
+      },
+    },
+  };
+
   return (
     <Card extra="pb-7 p-[20px]">
-      <div className="flex flex-row justify-between">
+      {/* Adicionado mb-6 para criar o gap entre título e gráfico */}
+      <div className="flex flex-row justify-between mb-6">
         <div className="ml-1 pt-2">
-          <p className="text-sm font-medium leading-4 text-gray-600">
-            Daily Traffic
+          <p className="text-[18px] font-bold text-navy-700 dark:text-white">
+            Distribuição dos Dispositivos por Espaço
           </p>
-          <p className="text-[34px] font-bold text-navy-700 dark:text-white">
-            2.579{" "}
-            <span className="text-sm font-medium leading-6 text-gray-600">
-              Visitors
-            </span>
-          </p>
-        </div>
-        <div className="mt-2 flex items-start">
-          <div className="flex items-center text-sm text-green-500">
-            <MdArrowDropUp className="h-5 w-5" />
-            <p className="font-bold"> +2.45% </p>
-          </div>
         </div>
       </div>
-
-      <div className="h-[300px] w-full pt-10 pb-0">
-        <BarChart
-          chartData={barChartDataDailyTraffic}
-          chartOptions={barChartOptionsDailyTraffic}
-        />
+      
+      {/* Container do gráfico */}
+      <div className="h-[300px] w-full">
+        <BarChart chartData={chartData} chartOptions={chartOptions} />
       </div>
     </Card>
   );
 };
 
-export default DailyTraffic;
+export default DispositivosPorEspaco;

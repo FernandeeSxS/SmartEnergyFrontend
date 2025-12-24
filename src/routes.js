@@ -8,6 +8,7 @@ import DataTables from "views/admin/tables";
 import RTLDefault from "views/rtl/default";
 import DetalheEspaco from "views/admin/space";
 import DetalheDispositivo from "./views/admin/deviceinfo";
+import SignUp from "views/auth/SignUp"; // Certifique-se de que o nome do arquivo e o caminho estão corretos
 
 // Auth Imports
 import SignIn from "views/auth/SignIn";
@@ -15,8 +16,8 @@ import SignIn from "views/auth/SignIn";
 // Icon Imports
 import {
   MdHome,
-  MdOutlineShoppingCart,
-  MdBarChart,
+  MdOutlineMapsHomeWork, // Ícone melhor para Espaços
+  MdDevices,
   MdPerson,
   MdLock,
 } from "react-icons/md";
@@ -29,21 +30,24 @@ const routes = [
     path: "default",
     icon: <MdHome className="h-6 w-6" />,
     component: <MainDashboard />,
+    sidebar: true,
   },
   {
     name: "Espaços",
     layout: "/admin",
     path: "nft-marketplace",
-    icon: <MdOutlineShoppingCart className="h-6 w-6" />,
+    icon: <MdOutlineMapsHomeWork className="h-6 w-6" />,
     component: <NFTMarketplace />,
     secondary: true,
+    sidebar: true,
   },
   {
     name: "Dispositivos",
     layout: "/admin",
-    icon: <MdBarChart className="h-6 w-6" />,
+    icon: <MdDevices className="h-6 w-6" />,
     path: "data-tables",
     component: <DataTables />,
+    sidebar: true,
   },
   {
     name: "Perfil",
@@ -51,6 +55,7 @@ const routes = [
     path: "profile",
     icon: <MdPerson className="h-6 w-6" />,
     component: <Profile />,
+    sidebar: true,
   },
   {
     name: "Iniciar Sessão",
@@ -58,6 +63,15 @@ const routes = [
     path: "sign-in",
     icon: <MdLock className="h-6 w-6" />,
     component: <SignIn />,
+    sidebar: false,
+  },
+  {
+    name: "Criar Conta",
+    layout: "/auth",
+    path: "sign-up",
+    icon: <MdLock className="h-6 w-6" />, // Pode usar o mesmo ícone de cadeado
+    component: <SignUp />,
+    sidebar: false,
   },
   {
   name: "Detalhe Dispositivo",
@@ -65,6 +79,7 @@ const routes = [
   path: "dispositivo/:id",
   component: <DetalheDispositivo />,
   secondary: true,
+  sidebar: false,
   },
   {
   name: "Detalhe Espaço",
@@ -72,6 +87,7 @@ const routes = [
   path: "space/:id",
   component: <DetalheEspaco />,
   secondary: true,
+  sidebar: false,
   },
 ];
 export default routes;
