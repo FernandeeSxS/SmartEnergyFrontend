@@ -8,10 +8,10 @@ import {
 
 // Componentes da UI
 import Widget from "components/widget/Widget";
-import TotalSpent from "views/admin/default/components/TotalSpent";
-import WeeklyRevenue from "views/admin/default/components/WeeklyRevenue";
-import PieChartCard from "views/admin/default/components/PieChartCard";
-import DispositivosPorEspaco from "views/admin/default/components/DailyTraffic";
+import TotalSpent from "views/admin/dashboard/components/TotalSpent";
+import WeeklyRevenue from "views/admin/dashboard/components/WeeklyRevenue";
+import PieChartCard from "views/admin/dashboard/components/PieChartCard";
+import DispositivosPorEspaco from "views/admin/dashboard/components/DailyTraffic";
 import { apiRequest } from "services/api";
 
 const Dashboard = () => {
