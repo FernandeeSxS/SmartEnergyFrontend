@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DeviceCard from "components/card/DeviceCard";
-import NFt3 from "assets/img/nfts/Nft3.png"; 
-import NFt2 from "assets/img/nfts/Nft2.png";
 import { IoMdAdd } from "react-icons/io";
 import AddDeviceModal from "./components/AddDeviceModal";
 import { apiRequest } from "services/api";
@@ -90,7 +88,6 @@ const Tables = () => {
               id={d.dispositivoId} // CORREÇÃO: Passa o ID para o DELETE funcionar
               title={d.nomeDispositivo || d.nome} 
               consumption={d.ultimoConsumo} 
-              image={NFt3}
               onViewDetails={() => handleVerDetalhes(d.dispositivoId)} 
               onRefresh={fetchDispositivos} // CORREÇÃO: Atualiza a lista após eliminar
             />
@@ -111,7 +108,6 @@ const Tables = () => {
               id={d.dispositivoId} // CORREÇÃO: Passa o ID para o DELETE funcionar
               title={d.nomeDispositivo || d.nome} 
               consumption={d.ultimoConsumo} 
-              image={NFt2} 
               extra="opacity-60" 
               onViewDetails={() => handleVerDetalhes(d.dispositivoId)}
               onRefresh={fetchDispositivos} // CORREÇÃO: Atualiza a lista após eliminar

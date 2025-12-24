@@ -3,7 +3,6 @@ import Dropdown from "components/dropdown";
 import { FiAlignJustify } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { RiMoonFill, RiSunFill } from "react-icons/ri";
-import avatar from "assets/img/avatars/avatar4.png";
 import { jwtDecode } from "jwt-decode";
 import authImage from "assets/img/avatars/userdefault.jpg"
 

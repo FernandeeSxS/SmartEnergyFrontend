@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import InputField from "components/fields/InputField";
 import { apiRequest } from "services/api";
 
 export default function SignIn() {
