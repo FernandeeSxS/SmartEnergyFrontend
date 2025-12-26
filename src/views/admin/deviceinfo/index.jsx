@@ -9,16 +9,13 @@ const DetalheDispositivo = () => {
 
   const [dispositivo, setDispositivo] = useState(null);
 
-  // Estados Editáveis para o Formulário de Configuração
   const [editNome, setEditNome] = useState("");
   const [editMarca, setEditMarca] = useState("");
   const [editModelo, setEditModelo] = useState("");
   const [editEspacoId, setEditEspacoId] = useState("");
 
-  // Estado para Novo Registo de Consumo (DTO)
   const [editConsumo, setEditConsumo] = useState("");
 
-  // Estados para dados de suporte
   const [listaEspacos, setListaEspacos] = useState([]);
   const [consumoAtual, setConsumoAtual] = useState("0.00 kWh");
   const [ultimoConsumo, setUltimoConsumo] = useState(null);
@@ -106,7 +103,6 @@ const DetalheDispositivo = () => {
     }
   };
 
-  // FUNÇÃO ATUALIZADA PARA O NOVO ENDPOINT COM DTO
   const handleNovoRegistoConsumo = async () => {
     if (!editConsumo || parseFloat(editConsumo) < 0) {
       return alert("Insira um valor de consumo válido.");
@@ -119,12 +115,11 @@ const DetalheDispositivo = () => {
         Observacoes: "Registo manual via dashboard"
       };
 
-      // Chamada para o teu novo endpoint POST api/consumo
       await apiRequest("/consumo", "POST", dto, token);
       
       alert("Novo consumo registado com sucesso!");
-      setEditConsumo(""); // Limpa o input
-      fetchDados(); // Atualiza a UI com os novos valores
+      setEditConsumo(""); 
+      fetchDados(); 
     } catch (err) {
       console.error(err);
       alert("Erro ao comunicar com o servidor para registar consumo.");

@@ -21,19 +21,18 @@ const AddEspacoModal = ({ isOpen, onClose }) => {
     }
 
     try {
-      // Supondo que o utilizadorId está no token, mas se não tiver, podes substituir
       const response = await apiRequest(
         "/espaco",
         "POST",
         {
           nomeEspaco,
           tamanhoEspaco: parseInt(tamanhoEspaco),
-          utilizadorId: 0, // O backend normalmente pega do token
+          utilizadorId: 0, 
         },
         token
       );
 
-      onClose();          // Fecha o modal
+      onClose();        
     } catch (err) {
       console.error(err);
       setError("Erro ao criar espaço");

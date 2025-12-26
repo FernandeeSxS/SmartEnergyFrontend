@@ -5,7 +5,6 @@ import { MdBarChart } from "react-icons/md";
 
 const WeeklyRevenue = ({ dataBarra, categoriasBarra }) => {
   
-  // Criamos as opções aqui dentro para garantir que elas recebem as categorias novas
   const chartOptions = {
     chart: { 
       toolbar: { show: false },
@@ -16,7 +15,7 @@ const WeeklyRevenue = ({ dataBarra, categoriasBarra }) => {
       y: { formatter: (val) => `${val?.toFixed(2)} kWh` }
     },
     xaxis: {
-      categories: categoriasBarra || [], // O NOME DOS ESPAÇOS ENTRA AQUI
+      categories: categoriasBarra || [], 
       labels: { style: { colors: "#A3AED0", fontSize: "12px", fontWeight: "500" } },
       axisBorder: { show: false },
       axisTicks: { show: false },
@@ -29,7 +28,7 @@ const WeeklyRevenue = ({ dataBarra, categoriasBarra }) => {
       }
     },
     grid: { show: false },
-    colors: ["#4318FF"], // Cor das barras
+    colors: ["#4318FF"],
     plotOptions: {
       bar: { 
         borderRadius: 8, 

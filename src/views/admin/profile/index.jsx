@@ -58,7 +58,6 @@ const ProfileOverview = () => {
   if (loading) return <div className="p-5 text-white">A carregar...</div>;
   if (!userData) return <div className="p-5 text-red-500">Erro ao carregar perfil.</div>;
 
-  // Extraímos o ID uma vez para usar nas props
   const currentUserId = getUserIdFromToken(token);
 
   return (
@@ -78,7 +77,7 @@ const ProfileOverview = () => {
         {/* Lado Direito: General (Informações da Conta) */}
         <div className="col-span-12 lg:col-span-8 h-full">
           <General 
-            id={currentUserId} // AQUI: Passamos o ID para resolver o erro 400
+            id={currentUserId} 
             nome={userData.nome} 
             email={userData.email} 
           />

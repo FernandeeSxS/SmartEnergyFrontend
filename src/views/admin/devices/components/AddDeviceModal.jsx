@@ -6,7 +6,6 @@ import { apiRequest } from "services/api";
 const AddDeviceModal = ({ isOpen, onClose }) => {
   const token = localStorage.getItem("userToken");
   
-  // Estados para capturar os valores do formulário
   const [nomeDispositivo, setNomeDispositivo] = useState("");
   const [nomeMarca, setNomeMarca] = useState("");
   const [nomeModelo, setNomeModelo] = useState("");
@@ -15,7 +14,6 @@ const AddDeviceModal = ({ isOpen, onClose }) => {
   const [listaEspacos, setListaEspacos] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Carregar espaços do utilizador para a dropdown
   useEffect(() => {
     if (isOpen) {
       const fetchEspacos = async () => {
@@ -36,7 +34,6 @@ const AddDeviceModal = ({ isOpen, onClose }) => {
 
     setIsSubmitting(true);
 
-    // O objeto 'input' deve coincidir com o CreateDispositivoRequest do C#
     const input = {
       nomeDispositivo: nomeDispositivo,
       nomeMarca: nomeMarca,
@@ -45,18 +42,16 @@ const AddDeviceModal = ({ isOpen, onClose }) => {
     };
 
     try {
-      // Chama o endpoint POST que criaste
       await apiRequest("/dispositivo", "POST", input, token);
       
       alert("Dispositivo registado com sucesso!");
       
-      // Limpar formulário
       setNomeDispositivo("");
       setNomeMarca("");
       setNomeModelo("");
       setEspacoId("");
       
-      onClose(); // Fecha o modal e dispara o refresh na lista pai
+      onClose();
     } catch (err) {
       console.error("Erro ao criar dispositivo:", err);
       alert("Erro ao registar dispositivo. Verifique se todos os campos estão corretos.");

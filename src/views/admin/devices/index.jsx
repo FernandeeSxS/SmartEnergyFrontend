@@ -85,11 +85,11 @@ const Tables = () => {
           {ativos.map((d) => (
             <DeviceCard 
               key={d.dispositivoId} 
-              id={d.dispositivoId} // CORREÇÃO: Passa o ID para o DELETE funcionar
+              id={d.dispositivoId}
               title={d.nomeDispositivo || d.nome} 
               consumption={d.ultimoConsumo} 
               onViewDetails={() => handleVerDetalhes(d.dispositivoId)} 
-              onRefresh={fetchDispositivos} // CORREÇÃO: Atualiza a lista após eliminar
+              onRefresh={fetchDispositivos} 
             />
           ))}
         </div>
@@ -105,12 +105,12 @@ const Tables = () => {
           {desligados.map((d) => (
             <DeviceCard 
               key={d.dispositivoId} 
-              id={d.dispositivoId} // CORREÇÃO: Passa o ID para o DELETE funcionar
+              id={d.dispositivoId}  
               title={d.nomeDispositivo || d.nome} 
               consumption={d.ultimoConsumo} 
               extra="opacity-60" 
               onViewDetails={() => handleVerDetalhes(d.dispositivoId)}
-              onRefresh={fetchDispositivos} // CORREÇÃO: Atualiza a lista após eliminar
+              onRefresh={fetchDispositivos}
             />
           ))}
         </div>

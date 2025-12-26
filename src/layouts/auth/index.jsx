@@ -1,9 +1,7 @@
-/* eslint-disable */
-import authImg from "assets/img/auth/auth.png"; // Substitui este ficheiro por uma imagem de energia
+import authImg from "assets/img/auth/auth.png";
 import { Link, Routes, Route, Navigate } from "react-router-dom";
 import routes from "routes.js";
 import FixedPlugin from "components/fixedPlugin/FixedPlugin";
-// Importar um ícone de energia para o lado direito
 import { MdEnergySavingsLeaf } from "react-icons/md";
 
 export default function Auth() {

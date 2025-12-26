@@ -1,21 +1,18 @@
 import React from "react";
 
-// Admin Imports
 import MainDashboard from "views/admin/dashboard";
 import NFTMarketplace from "views/admin/spaces";
 import Profile from "views/admin/profile";
 import DataTables from "views/admin/devices";
 import DetalheEspaco from "views/admin/space";
 import DetalheDispositivo from "./views/admin/deviceinfo";
-import SignUp from "views/auth/SignUp"; // Certifique-se de que o nome do arquivo e o caminho estão corretos
+import SignUp from "views/auth/SignUp"; 
 
-// Auth Imports
 import SignIn from "views/auth/SignIn";
 
-// Icon Imports
 import {
   MdHome,
-  MdOutlineMapsHomeWork, // Ícone melhor para Espaços
+  MdOutlineMapsHomeWork,
   MdDevices,
   MdPerson,
   MdLock,
@@ -68,7 +65,7 @@ const routes = [
     name: "Criar Conta",
     layout: "/auth",
     path: "sign-up",
-    icon: <MdLock className="h-6 w-6" />, // Pode usar o mesmo ícone de cadeado
+    icon: <MdLock className="h-6 w-6" />, 
     component: <SignUp />,
     sidebar: false,
   },

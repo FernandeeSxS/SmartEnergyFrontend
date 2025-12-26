@@ -13,20 +13,14 @@ const Marketplace = () => {
 
   const fetchEspacosComConsumo = async () => {
     try {
-      // 1. Primeiro, buscar a lista de espaços
       const data = await apiRequest("/espaco/utilizador", "GET", null, token);
       
       if (data && data.length > 0) {
-        // 2. Para cada espaço, buscar o consumo e a contagem de dispositivos
         const espacosComDados = await Promise.all(
           data.map(async (espaco) => {
             try {
-              // Chamada para o consumo total
               const consumoTotal = await apiRequest(`/consumo/espaco/${espaco.espacoId}/total`, "GET", null, token);
               
-              // Chamada para os dispositivos deste espaço para obtermos a contagem
-              // Se tiveres um endpoint tipo /dispositivo/espaco/{id}, usa-o.
-              // Caso contrário, usamos a lista geral filtrada (menos eficiente) ou um endpoint de count.
               const dispositivos = await apiRequest(`/dispositivo/espaco/${espaco.espacoId}`, "GET", null, token);
               
               return { 
@@ -91,12 +85,12 @@ const Marketplace = () => {
           {espacos.map((espaco) => (
             <NftCard
               key={espaco.espacoId}
-              id={espaco.espacoId} // Essencial para o DELETE
+              id={espaco.espacoId}  
               title={espaco.nomeEspaco}
               author={espaco.tamanhoEspaco}
               price={espaco.consumoTotal || 0}
-              dispositivoCount={espaco.qtdDispositivos} // Passa a contagem para o Modal de alerta
-              onRefresh={fetchEspacosComConsumo} // Para atualizar a lista após eliminar
+              dispositivoCount={espaco.qtdDispositivos} 
+              onRefresh={fetchEspacosComConsumo} 
               onViewDevices={() =>
                 handleVerDispositivos(espaco.espacoId, espaco.nomeEspaco)
               }

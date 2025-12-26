@@ -4,9 +4,7 @@ import Card from "components/card";
 import { MdLogout } from "react-icons/md";
 import UserDefault from "assets/img/avatars/userdefault.jpg"
 
-// Adicionamos as props entre as chaves { }
 const Banner = ({ nome, dispositivos, espacos, membroDesde }) => {
-  // URL de um avatar padrão (podes mudar este link ou usar um ícone local)
   const defaultAvatar = UserDefault;
 
   return (

@@ -1,9 +1,7 @@
-// src/services/api.js
-const API_BASE_URL = "https://localhost:7169/api"; // Sem barra no fim
+const API_BASE_URL = "https://localhost:7169/api"; 
 
 export async function apiRequest(endpoint, method = "GET", body = null, token = null) {
-  // Se o método for POST e estivermos a enviar credenciais, 
-  // o fetch precisa de uma configuração específica dependendo da API.
+
   const headers = {
     "Content-Type": "application/json",
   };
@@ -28,8 +26,6 @@ export async function apiRequest(endpoint, method = "GET", body = null, token = 
     throw new Error(errorText || "Erro na requisição");
   }
 
-  // Se a resposta for apenas uma string (como no seu Register), 
-  // o .json() pode falhar. Vamos tratar isso:
   const contentType = response.headers.get("content-type");
   if (contentType && contentType.includes("application/json")) {
     return response.json();

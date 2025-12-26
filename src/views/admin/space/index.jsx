@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { apiRequest } from "services/api";
 
 const Space = () => {
-  const { id } = useParams(); // espacoId
+  const { id } = useParams();
   const navigate = useNavigate();
   const { state } = useLocation();
   const NomeEspaco = state?.nomeEspaco;

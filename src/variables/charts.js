@@ -173,7 +173,6 @@ export const barChartOptionsWeeklyRevenue = {
       show: false,
     },
   },
-  // colors:['#ff3322','#faf']
   tooltip: {
     style: {
       fontSize: "12px",

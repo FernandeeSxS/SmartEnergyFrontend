@@ -8,7 +8,6 @@ const PieChartCard = ({ dispositivos }) => {
   const chartSeries = temDados ? dispositivos.map((d) => parseFloat(d.ultimoConsumo || 0)) : [];
   const chartLabels = temDados ? dispositivos.map((d) => d.nomeDispositivo) : [];
 
-  // Filtra para mostrar apenas o Máximo e o Mínimo
   let dispositivosExtremos = [];
   if (temDados && dispositivos.length >= 2) {
     const ordenados = [...dispositivos].sort((a, b) => 

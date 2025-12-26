@@ -2,21 +2,16 @@ import Card from "components/card";
 import React, { useState, useEffect } from "react";
 import { apiRequest } from "services/api";
 
-// Recebemos o id, nome e email como props
 const General = ({ id, nome, email }) => {
-  // 1. Estados para controlar os inputs e permitir a edição
   const [formData, setFormData] = useState({ nome: "", email: "" });
 
-  // 2. Sincronizar os dados quando eles chegam da API (via props)
   useEffect(() => {
     setFormData({ nome: nome || "", email: email || "" });
   }, [nome, email]);
 
-  // 3. Função para chamar o endpoint PUT
   const handleUpdate = async () => {
     const token = localStorage.getItem("userToken");
     
-    // O objeto enviado corresponde ao UpdateUserDto no C#
     const model = {
       nome: formData.nome,
       email: formData.email

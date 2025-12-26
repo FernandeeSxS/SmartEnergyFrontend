@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Card from "components/card";
-import { MdDelete } from "react-icons/md"; // Certifica-te que tens react-icons instalado
+import { MdDelete } from "react-icons/md"; 
 import { apiRequest } from "services/api";
 
 const DeviceCard = ({ id, title, consumption, extra, onViewDetails, onRefresh }) => {
@@ -9,10 +9,9 @@ const DeviceCard = ({ id, title, consumption, extra, onViewDetails, onRefresh })
 
   const handleDelete = async () => {
     try {
-      // Chama o teu endpoint [HttpDelete("{id}")]
       await apiRequest(`/dispositivo/${id}`, "DELETE", null, token);
       setShowModal(false);
-      if (onRefresh) onRefresh(); // Função para recarregar a lista na página pai
+      if (onRefresh) onRefresh();
       alert("Dispositivo eliminado com sucesso.");
     } catch (err) {
       console.error(err);
@@ -25,10 +24,9 @@ const DeviceCard = ({ id, title, consumption, extra, onViewDetails, onRefresh })
       <Card
         extra={`flex flex-col w-full h-full !p-4 3xl:p-![18px] bg-white relative ${extra}`}
       >
-        {/* ÍCONE DE ELIMINAR - Canto Superior Direito */}
         <button
           onClick={(e) => {
-            e.stopPropagation(); // Impede que clique no ícone abra os detalhes
+            e.stopPropagation(); 
             setShowModal(true);
           }}
           className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors duration-200"
@@ -41,7 +39,6 @@ const DeviceCard = ({ id, title, consumption, extra, onViewDetails, onRefresh })
           <div>
             <div className="relative w-full"></div>
 
-            {/* Informação Principal */}
             <div className="mb-6 flex flex-col items-start px-1 mt-4">
               <p className="text-lg font-bold text-navy-700 dark:text-white">
                 {title}
@@ -52,7 +49,6 @@ const DeviceCard = ({ id, title, consumption, extra, onViewDetails, onRefresh })
             </div>
           </div>
 
-          {/* Botão Ver Detalhes */}
           <div className="flex items-center justify-center">
             <button
               onClick={onViewDetails}
@@ -64,7 +60,6 @@ const DeviceCard = ({ id, title, consumption, extra, onViewDetails, onRefresh })
         </div>
       </Card>
 
-      {/* POP-UP (MODAL) DE CONFIRMAÇÃO */}
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-navy-800 p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4">

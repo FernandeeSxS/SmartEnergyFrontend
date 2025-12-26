@@ -3,7 +3,6 @@ import Card from "components/card";
 import { MdDelete } from "react-icons/md";
 import { apiRequest } from "services/api";
 
-// Adicionamos 'dispositivoCount' às props
 const NftCard = ({ id, title, author, price, extra, onViewDevices, onRefresh, dispositivoCount }) => {
   const [showModal, setShowModal] = useState(false);
   const token = localStorage.getItem("userToken");

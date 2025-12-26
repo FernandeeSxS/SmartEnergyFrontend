@@ -3,7 +3,7 @@ import { apiRequest } from "services/api";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
-    nome: "", // Alterado de 'name' para 'nome' para coincidir com o DTO C#
+    nome: "",  
     email: "",
     password: "",
     confirmPassword: "",
@@ -21,7 +21,6 @@ export default function SignUp() {
 
     const { nome, email, password, confirmPassword } = formData;
 
-    // 1. Validação simples no Frontend
     if (!nome || !email || !password || !confirmPassword) {
       setError("Por favor, preencha todos os campos.");
       return;
@@ -33,24 +32,18 @@ export default function SignUp() {
     }
 
     try {
-      // 2. Chamada à API enviando o objeto que o DTO espera
-      // O objeto JSON será: { "nome": "...", "email": "...", "password": "..." }
       const data = await apiRequest("/Auth/register", "POST", {
         nome,
         email,
         password,
       });
 
-      // 3. Sucesso (O backend agora retorna um objeto com 'message')
       setSuccess(true);
       setTimeout(() => {
-        // Ajuste o caminho conforme as suas rotas do React Router
         window.location.href = "/auth/sign-in"; 
       }, 2000);
       
     } catch (err) {
-      // 4. Tratamento de erro (Captura o BadRequest do backend)
-      // Se o backend retornar 'Email já registado', ele cairá aqui
       setError(err.message || "Ocorreu um erro ao criar a conta.");
     }
   };
@@ -71,7 +64,7 @@ export default function SignUp() {
         <form onSubmit={handleRegister}>
           <input
             type="text"
-            name="nome" // Deve ser igual à chave no formData
+            name="nome" 
             placeholder="Nome Completo"
             value={formData.nome}
             onChange={handleChange}

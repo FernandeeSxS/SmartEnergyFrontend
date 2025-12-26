@@ -6,7 +6,6 @@ import {
   MdAttachMoney
 } from "react-icons/md";
 
-// Componentes da UI
 import Widget from "components/widget/Widget";
 import TotalSpent from "views/admin/dashboard/components/TotalSpent";
 import WeeklyRevenue from "views/admin/dashboard/components/WeeklyRevenue";

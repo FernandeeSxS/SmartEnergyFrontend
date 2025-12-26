@@ -6,7 +6,7 @@ const PieChart = (props) => {
   return (
     <Chart
       options={options}
-      type="donut" // 'donut' costuma ficar melhor que 'pie' no Horizon UI
+      type="donut" 
       width="100%"
       height="100%"
       series={series}
