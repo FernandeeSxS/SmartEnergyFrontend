@@ -1,100 +1,102 @@
-# [Horizon UI TailwindCSS React ⚡️](https://horizon-ui.com/horizon-tailwind-react) [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?text=Check%20Horizon%20UI,%20the%20trendiest%20open-source%20admin%20template%20for%20%23tailwindcss%20and%20%23react!%0A%0Ahorizon-ui.com%20)
+# SmartEnergy - Frontend
 
-![version](https://img.shields.io/badge/version-2.0.0-brightgreen.svg)
-![license](https://img.shields.io/badge/license-MIT-blue.svg)
-[![GitHub issues open](https://img.shields.io/github/issues/horizon-ui/horizon-tailwind-react.svg?maxAge=2592000)](https://github.com/horizon-ui/horizon-tailwind-react/issues?q=is%3Aopen+is%3Aissue)
+O frontend do **SmartEnergy** é uma aplicação web desenvolvida em **React**, utilizando o template **Horizon UI** como base visual e de componentes. Esta camada permite a interação do utilizador com a plataforma, incluindo autenticação, visualização de consumos, gestão de dispositivos e acesso a métricas energéticas, garantindo uma experiência de utilização moderna e responsiva.
 
-<p>&nbsp;</p>
-
-[<img alt="Horizon UI - Tailwind CSS React Admin dashboard template" src="https://i.ibb.co/1zhBQ2J/horizon-ui-tailwind-2.png" />](https://github.com/horizon-ui/horizon-tailwind-react)
-
-<p>&nbsp;</p>
-
-Get started and build your dream web app with Horizon UI, the trendiest & innovative Open Source Admin Template for Tailwind CSS & React!
+O Backend está desenvolvido em: https://github.com/IPCALESI2526/tp02-27960_27961
 
 ---
 
-### Introduction
+## Estrutura do Projeto
 
-Designed for those who like modern UI elements and beautiful websites. Made of hundred of elements, designed blocks and fully coded pages, Horizon UI is ready to help you create stunning websites and webapps.
+A aplicação está organizada em pastas claras e modulares para facilitar manutenção e escalabilidade:
 
-Save hundreds of hours trying to create and develop a dashboard from scratch.
-The fastest, most responsive & trendiest dashboard for Tailwind CSS is here. Seriously.
+- **components**: Componentes reutilizáveis, organizados em subpastas como `card`, `charts`, `dropdown`, `navbar`, `sidebar` e `widget`.  
+- **views**: Páginas da aplicação, divididas em `admin` e `auth`.  
+  - `admin`: `dashboard`, `devices`, `deviceinfo` e `profile`.  
+  - `auth`: `SignIn` e `SignUp` para autenticação.  
+- **services**: Lógica de comunicação com a API RESTful. O ficheiro `api.js` define o `API_BASE_URL` e a função `apiRequest`, que envia requisições HTTP com JWT e trata respostas do servidor.  
+- **assets, layouts, variables**: Recursos estáticos, configurações visuais e definições de gráficos para dashboards.  
+- **Ficheiros principais**:  
+  - `App.jsx` e `routes.js`: Gerem a navegação entre páginas.  
+  - `index.js`: Bootstrapping da aplicação.
 
-With Horizon UI you will find many examples for pages like NFTs Pages,
-Authentication Pages, Profile and so on. Just choose between a Basic Design or a cover and you are good to go!
+---
 
-### 🎉 [NEW] Horizon UI Components
+## Comunicação com a API RESTful
 
-All the main components from both versions, this will help you to see and interact with all & the latest added components of Horizon (also, new components are on the way, stay tuned)! ⚡️
-<a href="https://horizon-ui.com/components/?ref=readme-horizon-tailwind-react" target="_blank">See all components</a>
+O frontend comunica com a **REST API** através da função `apiRequest` (`src/services/api.js`).  
+Funcionalidades principais:
 
-### Documentation
+- Definir método HTTP (`GET`, `POST`, `PUT`, `DELETE`).  
+- Enviar dados em JSON (ex.: credenciais de login ou registo de consumos).  
+- Incluir token JWT no header `Authorization` para endpoints protegidos.  
+- Tratar erros de forma uniforme, apresentando mensagens claras ao utilizador.
 
-Each element is well presented in a very complex documentation. You can read more about the <a href="https://horizon-ui.com/docs-tailwind/docs/react/installation?ref=readme-horizon-tailwind-react" target="_blank">documentation here.</a>
+**Exemplo de requisição de login:**
 
-### Quick Start
-
-Install Horizon UI by running either of the following:
-
-- Install NodeJS LTS from [NodeJs Official Page](https://nodejs.org/en/?ref=horizon-documentation) (NOTE: Product only works with LTS version).
-
-Clone the repository with the following command:
-
-```bash
-git clone https://github.com/horizon-ui/horizon-tailwind-react.git
+```javascript
+const data = await apiRequest("/Auth/login", "POST", { email, password });
+if (data.token) {
+  localStorage.setItem("userToken", data.token);
+  window.location.href = "/admin/default";
+}
 ```
 
-Run in terminal this command:
+## Páginas e Funcionalidades Principais
 
+- **Autenticação**: `SignIn.jsx` e `SignUp.jsx` permitem registo, login e armazenamento local do JWT.  
+
+- **Dashboard e Visualização de Dados**: Gráficos e métricas de consumo energético, com dados da REST API e serviços externos (ex.: API de preços de energia).  
+
+- **Gestão de Dispositivos e Espaços**: Adicionar, editar e remover dispositivos, associar consumos a espaços físicos e aceder a informações detalhadas de cada equipamento.  
+
+---
+
+## Integração com o Backend
+
+O frontend integra-se diretamente com a REST API do SmartEnergy, consumindo endpoints para:
+
+- Autenticação e registo de utilizadores  
+- Gestão de consumos  
+- Gestão de dispositivos  
+- Consulta de preços de energia  
+
+O uso do **JWT** garante que apenas utilizadores autenticados podem aceder a dados protegidos. A função `api.js` abstrai a complexidade das chamadas HTTP e uniformiza as requisições.  
+
+---
+
+## Tecnologias Utilizadas
+
+- React  
+- Horizon UI  
+- REST API  
+- JWT para autenticação  
+
+---
+
+## Instalação
+
+1. **Clonar o repositório:**
+
+```bash
+git clone https://github.com/FernandeeSxS/SmartEnergyFrontend.git
+```
+
+Instalar dependências:
 ```bash
 npm install
 ```
-
-Then run this command to start your local server
-
+Iniciar a aplicação:
 ```bash
 npm start
 ```
-
-### Example Pages
-
-If you want to get inspiration or just show something directly to your clients, you can jump start your development with our pre-built example pages. You will be able to quickly set up the basic structure for your web project.
-
-View <a href="https://horizon-ui.com/horizon-tailwind-react/?ref=readme-horizon-tailwind-react" target="_blank">example pages here.</a>
-
-### Versions
-
-| Free Version                                                                                                                                          | PRO Version                                                                                                                                                    |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![Horizon UI Tailwind CSS React](https://i.ibb.co/1zhBQ2J/horizon-ui-tailwind-2.png)](https://www.horizon-ui.com/?ref=readme-horizon-tailwind-react) | [![Horizon UI Tailwind CSS React PRO](https://i.ibb.co/d0cVzKB/horizon-ui-pro-tailwind.png)](https://www.horizon-ui.com/pro?ref=readme-horizon-tailwind-react) |
+A aplicação estará disponível em http://localhost:3000.
 
 ### Figma Version
 
 Horizon UI is available in Figma format as well! Check it out on Figma
 Community! 🎨
 [See the Horizon UI Figma design files](https://bit.ly/horizon-figma)
-
-### Reporting Issues
-
-We use GitHub Issues as the official bug tracker for the Horizon UI. Here are
-some advices for our users that want to report an issue:
-
-1. Make sure that you are using the latest version of the Horizon UI Dashbaord.
-   Check the CHANGELOG from your dashboard on our
-   [CHANGE LOG File](https://github.com/horizon-ui/horizon-tailwind-react/blob/main/CHANGELOG.md?ref=readme-horizon-tailwind-react).
-2. Providing us reproducible steps for the issue will shorten the time it takes
-   for it to be fixed.
-3. Some issues may be browser specific, so specifying in what browser you
-   encountered the issue might help.
-
----
-
-### Community
-
-Connect with the community! Feel free to ask questions, report issues, and meet new people that already use Horizon UI!
-
-💬 [Join the #HorizonUI Discord Community!](https://discord.gg/f6tEKFBd4m)
 
 ### Copyright and license
 
