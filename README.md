@@ -74,23 +74,27 @@ O uso do **JWT** garante que apenas utilizadores autenticados podem aceder a dad
 
 ---
 
-## Instalação
+## Instalação e Compilação de toda a plataforma
 
-1. **Clonar o repositório:**
-
+1. Clonar o repositório Backend:
+```bash
+git clone https://github.com/IPCALESI2526/tp02-27960_27961.git
+```
+2. Abrir a solução `SmartEnergy.sln` no Visual Studio.
+3. Clicar em **Executar** (F5) para iniciar o backend e o SOAP Service.
+4. Clonar o repositório Frontend:
 ```bash
 git clone https://github.com/FernandeeSxS/SmartEnergyFrontend.git
 ```
-
-Instalar dependências:
+5. Instalar dependências:
 ```bash
 npm install
 ```
-Iniciar a aplicação:
+6. Iniciar a aplicação:
 ```bash
 npm start
 ```
-A aplicação estará disponível em http://localhost:3000.
+> A aplicação estará disponível em http://localhost:3000.
 
 ### Figma Version
 
